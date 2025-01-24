@@ -1,0 +1,17 @@
+{
+  "name": "emoji-art",
+  "version": "1.1.1",
+  "description": "Convert images to emoji art",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@babel/preset-env": "^7.24.0",
+    "babel-jest": "^29.7.0",
+    "canvas": "^2.11.2",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  }
+}

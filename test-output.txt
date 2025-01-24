@@ -1,0 +1,1410 @@
+(node:60413) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+FAIL tests/js/main.test.js
+  ● Console
+
+    console.debug
+      [EmojiArt] Debug mode: enabled
+
+      at debug (static/js/main.js:9:17)
+
+  ● Image Processing Functions › file validation accepts image files
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+      125 |         return new Promise(resolve => setTimeout(resolve, 100))
+      126 |             .then(() => {
+    > 127 |                 expect(processImageSpy).toHaveBeenCalled();
+          |                                         ^
+      128 |             });
+      129 |     });
+      130 | });
+
+      at toHaveBeenCalled (tests/js/main.test.js:127:41)
+
+PASS tests/js/imageProcessor.test.js
+  ● Console
+
+    console.error
+      [ERROR] File too large. Maximum size is 10.0MB
+
+      280 |     error(message) {
+      281 |         if (this.currentLevel <= this.LOG_LEVELS.ERROR) {
+    > 282 |             console.error(`[ERROR] ${message}`);
+          |                     ^
+      283 |         }
+      284 |     }
+      285 | }
+
+      at Logger.error (static/js/imageProcessor.js:282:21)
+      at ImageProcessor.error [as showError] (static/js/imageProcessor.js:244:25)
+      at ImageProcessor.showError [as validateFile] (static/js/imageProcessor.js:65:18)
+      at Object.validateFile (tests/js/imageProcessor.test.js:61:35)
+
+    console.error
+      [ERROR] Unsupported file type. Please upload a PNG or JPEG image.
+
+      280 |     error(message) {
+      281 |         if (this.currentLevel <= this.LOG_LEVELS.ERROR) {
+    > 282 |             console.error(`[ERROR] ${message}`);
+          |                     ^
+      283 |         }
+      284 |     }
+      285 | }
+
+      at Logger.error (static/js/imageProcessor.js:282:21)
+      at ImageProcessor.error [as showError] (static/js/imageProcessor.js:244:25)
+      at ImageProcessor.showError [as validateFile] (static/js/imageProcessor.js:70:18)
+      at Object.validateFile (tests/js/imageProcessor.test.js:66:35)
+
+    console.info
+      [INFO] File selected: test.png (0.0B)
+
+      at Logger.info (static/js/imageProcessor.js:276:21)
+
+    console.debug
+      [DEBUG] Canvas resized to: 600x600
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Aspect ratio set to: 1:1
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.info
+      [INFO] Image loaded successfully
+
+      at Logger.info (static/js/imageProcessor.js:276:21)
+
+    console.info
+      [INFO] File selected: test.gif (0.0B)
+
+      at Logger.info (static/js/imageProcessor.js:276:21)
+
+    console.error
+      [ERROR] Unsupported file type. Please upload a PNG or JPEG image.
+
+      280 |     error(message) {
+      281 |         if (this.currentLevel <= this.LOG_LEVELS.ERROR) {
+    > 282 |             console.error(`[ERROR] ${message}`);
+          |                     ^
+      283 |         }
+      284 |     }
+      285 | }
+
+      at Logger.error (static/js/imageProcessor.js:282:21)
+      at ImageProcessor.error [as showError] (static/js/imageProcessor.js:244:25)
+      at ImageProcessor.showError [as validateFile] (static/js/imageProcessor.js:70:18)
+      at ImageProcessor.validateFile [as handleFileSelect] (static/js/imageProcessor.js:47:19)
+      at Object.handleFileSelect (tests/js/imageProcessor.test.js:118:28)
+
+    console.info
+      [INFO] Processing image with grid size: 16x16
+
+      at Logger.info (static/js/imageProcessor.js:276:21)
+
+    console.debug
+      [DEBUG] Grid cell size: 18.75x9.375 pixels
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (0,0) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (1,0) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (2,0) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (3,0) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (4,0) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (5,0) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (6,0) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (7,0) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (8,0) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (9,0) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (10,0) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (11,0) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (12,0) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (13,0) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (14,0) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (15,0) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (0,1) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (1,1) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (2,1) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (3,1) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (4,1) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (5,1) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (6,1) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (7,1) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (8,1) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (9,1) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (10,1) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (11,1) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (12,1) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (13,1) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (14,1) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (15,1) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (0,2) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (1,2) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (2,2) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (3,2) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (4,2) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (5,2) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (6,2) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (7,2) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (8,2) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (9,2) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (10,2) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (11,2) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (12,2) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (13,2) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (14,2) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (15,2) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (0,3) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (1,3) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (2,3) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (3,3) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (4,3) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (5,3) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (6,3) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (7,3) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (8,3) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (9,3) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (10,3) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (11,3) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (12,3) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (13,3) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (14,3) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (15,3) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (0,4) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (1,4) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (2,4) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (3,4) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (4,4) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (5,4) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (6,4) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (7,4) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (8,4) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (9,4) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (10,4) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (11,4) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (12,4) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (13,4) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (14,4) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (15,4) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (0,5) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (1,5) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (2,5) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (3,5) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (4,5) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (5,5) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (6,5) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (7,5) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (8,5) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (9,5) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (10,5) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (11,5) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (12,5) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (13,5) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (14,5) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (15,5) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (0,6) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (1,6) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (2,6) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (3,6) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (4,6) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (5,6) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (6,6) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (7,6) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (8,6) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (9,6) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (10,6) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (11,6) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (12,6) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (13,6) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (14,6) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (15,6) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (0,7) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (1,7) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (2,7) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (3,7) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (4,7) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (5,7) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (6,7) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (7,7) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (8,7) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (9,7) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (10,7) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (11,7) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (12,7) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (13,7) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (14,7) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (15,7) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (0,8) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (1,8) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (2,8) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (3,8) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (4,8) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (5,8) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (6,8) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (7,8) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (8,8) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (9,8) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (10,8) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (11,8) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (12,8) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (13,8) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (14,8) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (15,8) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (0,9) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (1,9) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (2,9) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (3,9) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (4,9) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (5,9) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (6,9) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (7,9) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (8,9) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (9,9) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (10,9) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (11,9) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (12,9) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (13,9) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (14,9) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (15,9) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (0,10) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (1,10) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (2,10) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (3,10) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (4,10) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (5,10) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (6,10) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (7,10) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (8,10) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (9,10) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (10,10) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (11,10) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (12,10) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (13,10) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (14,10) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (15,10) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (0,11) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (1,11) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (2,11) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (3,11) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (4,11) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (5,11) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (6,11) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (7,11) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (8,11) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (9,11) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (10,11) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (11,11) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (12,11) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (13,11) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (14,11) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (15,11) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (0,12) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (1,12) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (2,12) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (3,12) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (4,12) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (5,12) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (6,12) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (7,12) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (8,12) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (9,12) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (10,12) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (11,12) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (12,12) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (13,12) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (14,12) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (15,12) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (0,13) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (1,13) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (2,13) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (3,13) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (4,13) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (5,13) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (6,13) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (7,13) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (8,13) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (9,13) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (10,13) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (11,13) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (12,13) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (13,13) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (14,13) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (15,13) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (0,14) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (1,14) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (2,14) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (3,14) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (4,14) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (5,14) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (6,14) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (7,14) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (8,14) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (9,14) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (10,14) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (11,14) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (12,14) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (13,14) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (14,14) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (15,14) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (0,15) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (1,15) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (2,15) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (3,15) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (4,15) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (5,15) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (6,15) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (7,15) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (8,15) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (9,15) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (10,15) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (11,15) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (12,15) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (13,15) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (14,15) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.debug
+      [DEBUG] Cell (15,15) average color: #ff0000
+
+      at Logger.debug (static/js/imageProcessor.js:270:21)
+
+    console.info
+      [INFO] Image processing completed
+
+      at Logger.info (static/js/imageProcessor.js:276:21)
+
+    console.info
+      [INFO] Image processed successfully
+
+      at Logger.info (static/js/imageProcessor.js:276:21)
+
+
+Test Suites: 1 failed, 1 passed, 2 total
+Tests:       1 failed, 19 passed, 20 total
+Snapshots:   0 total
+Time:        1.376 s
+Ran all test suites.

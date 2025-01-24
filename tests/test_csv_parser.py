@@ -14,12 +14,11 @@ def test_csv_path(tmp_path):
 def valid_csv_file(test_csv_path):
     """Create a valid test CSV file."""
     data = [
-        Config.EMOJI_CSV_HEADERS,
-        ['😀', '#FFFF00', 'Smiling Face'],
-        ['🐶', '#B5651D', 'Dog'],
-        ['❤️', '#FF0000', 'Heart'],
-        ['👨‍👩‍👧‍👦', '#FF00FF', 'Family'],
-        ['👍🏻', '#FFD700', 'Thumbs Up']
+        ['Emoji', 'ASCII Code', 'Hex Color'],
+        ['🟩', '129001', '#37c136'],
+        ['🟦', '128998', '#3b80f5'],
+        ['⬛', '11035', '#3c3c3c'],
+        ['🚹', '128697', '#4797e6']
     ]
     
     with open(test_csv_path, 'w', newline='', encoding='utf-8') as f:
@@ -35,48 +34,48 @@ def valid_csv_file(test_csv_path):
 def test_emoji_validation():
     """Test emoji validation for various emoji types."""
     # Valid emojis
-    assert is_valid_emoji('😀')  # Basic emoji
-    assert is_valid_emoji('❤️')  # With variation selector
-    assert is_valid_emoji('👍🏻')  # With skin tone
-    assert is_valid_emoji('👨‍👩‍👧‍👦')  # Zero-width joiner sequence
+    assert is_valid_emoji('🟩')  # Square emoji
+    assert is_valid_emoji('🟦')  # Square with color
+    assert is_valid_emoji('⬛')  # Basic shape
+    assert is_valid_emoji('🚹')  # Symbol
     
     # Invalid inputs
     assert not is_valid_emoji('')  # Empty
     assert not is_valid_emoji('abc')  # Plain text
     assert not is_valid_emoji('123')  # Numbers
     assert not is_valid_emoji(' ')  # Whitespace
-    assert not is_valid_emoji('😀😀')  # Multiple emojis
+    assert not is_valid_emoji('🟩🟦')  # Multiple emojis
 
 def test_color_validation():
     """Test hex color validation."""
     # Valid colors
-    assert is_valid_hex_color('#000000')
-    assert is_valid_hex_color('#FFFFFF')
-    assert is_valid_hex_color('#ff00ff')
-    assert is_valid_hex_color('#123ABC')
+    assert is_valid_hex_color('#37c136')
+    assert is_valid_hex_color('#3b80f5')
+    assert is_valid_hex_color('#3c3c3c')
+    assert is_valid_hex_color('#4797e6')
     
     # Invalid colors
     assert not is_valid_hex_color('')
-    assert not is_valid_hex_color('123456')  # Missing #
-    assert not is_valid_hex_color('#12345')  # Too short
-    assert not is_valid_hex_color('#1234567')  # Too long
+    assert not is_valid_hex_color('37c136')  # Missing #
+    assert not is_valid_hex_color('#37c13')  # Too short
+    assert not is_valid_hex_color('#37c136ff')  # Too long
     assert not is_valid_hex_color('#GGGGGG')  # Invalid chars
     assert not is_valid_hex_color('rgb(0,0,0)')  # Wrong format
 
 def test_parse_valid_csv(valid_csv_file):
     """Test parsing a valid CSV file."""
     emoji_data = parse_emoji_csv()
-    assert len(emoji_data) == 5
+    assert len(emoji_data) == 4
     
     # Check first emoji
-    assert emoji_data[0]['emoji'] == '😀'
-    assert emoji_data[0]['color'] == '#FFFF00'
-    assert emoji_data[0]['name'] == 'Smiling Face'
+    assert emoji_data[0]['Emoji'] == '🟩'
+    assert emoji_data[0]['ASCII Code'] == '129001'
+    assert emoji_data[0]['Hex Color'] == '#37c136'
     
-    # Check complex emoji
-    assert emoji_data[3]['emoji'] == '👨‍👩‍👧‍👦'
-    assert emoji_data[3]['color'] == '#FF00FF'
-    assert emoji_data[3]['name'] == 'Family'
+    # Check another emoji
+    assert emoji_data[1]['Emoji'] == '🟦'
+    assert emoji_data[1]['ASCII Code'] == '128998'
+    assert emoji_data[1]['Hex Color'] == '#3b80f5'
 
 def test_missing_file():
     """Test behavior when CSV file is missing."""
@@ -88,7 +87,7 @@ def test_invalid_headers(test_csv_path):
     """Test CSV with invalid headers."""
     with open(test_csv_path, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow(['wrong', 'headers'])
+        writer.writerow(['wrong', 'headers', 'here'])
     
     Config.EMOJI_CSV_PATH = test_csv_path
     with pytest.raises(CSVValidationError) as exc_info:
@@ -98,10 +97,11 @@ def test_invalid_headers(test_csv_path):
 def test_invalid_row_data(test_csv_path):
     """Test handling of invalid row data."""
     data = [
-        Config.EMOJI_CSV_HEADERS,
-        ['abc', '#FFFF00', 'Invalid'],  # Invalid emoji
-        ['😀', 'not_hex', 'Invalid Color'],   # Invalid color
-        ['😀', '#FFFF00', '']                 # Empty name
+        ['Emoji', 'ASCII Code', 'Hex Color'],
+        ['invalid', 'not-a-number', 'not-a-color'],  # All invalid
+        ['🟩', 'abc', '#37c136'],  # Invalid ASCII
+        ['🟩', '129001', 'invalid-color'],  # Invalid color
+        ['multiple-emoji-🟩🟦', '129001', '#37c136']  # Invalid emoji
     ]
     
     with open(test_csv_path, 'w', newline='', encoding='utf-8') as f:
@@ -110,13 +110,13 @@ def test_invalid_row_data(test_csv_path):
     
     Config.EMOJI_CSV_PATH = test_csv_path
     emoji_data = parse_emoji_csv()
-    assert len(emoji_data) == 0  # All rows should be invalid
+    assert len(emoji_data) == 0  # No valid rows
 
 def test_empty_csv(test_csv_path):
     """Test handling of empty CSV file."""
     with open(test_csv_path, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow(Config.EMOJI_CSV_HEADERS)
+        writer.writerow(['Emoji', 'ASCII Code', 'Hex Color'])  # Only headers
     
     Config.EMOJI_CSV_PATH = test_csv_path
     emoji_data = parse_emoji_csv()
@@ -126,38 +126,32 @@ def test_validate_row():
     """Test row validation function."""
     # Valid row
     valid_row = {
-        'emoji': '😀',
-        'color': '#FFFF00',
-        'name': 'Smiling Face'
+        'Emoji': '🟩',
+        'ASCII Code': '129001',
+        'Hex Color': '#37c136'
     }
-    assert validate_row(valid_row, 1) is not None
+    assert validate_row(valid_row, 1) == valid_row
     
-    # Test each field validation
+    # Invalid emoji
     invalid_emoji = {
-        'emoji': 'X',
-        'color': '#FFFF00',
-        'name': 'Invalid'
+        'Emoji': 'abc',
+        'ASCII Code': '129001',
+        'Hex Color': '#37c136'
     }
     assert validate_row(invalid_emoji, 1) is None
     
+    # Invalid ASCII code
+    invalid_ascii = {
+        'Emoji': '🟩',
+        'ASCII Code': 'abc',
+        'Hex Color': '#37c136'
+    }
+    assert validate_row(invalid_ascii, 1) is None
+    
+    # Invalid color
     invalid_color = {
-        'emoji': '😀',
-        'color': 'not_hex',
-        'name': 'Invalid'
+        'Emoji': '🟩',
+        'ASCII Code': '129001',
+        'Hex Color': 'invalid'
     }
     assert validate_row(invalid_color, 1) is None
-    
-    empty_name = {
-        'emoji': '😀',
-        'color': '#FFFF00',
-        'name': ''
-    }
-    assert validate_row(empty_name, 1) is None
-    
-    # Complex emoji test
-    complex_emoji = {
-        'emoji': '👨‍👩‍👧‍👦',
-        'color': '#FF00FF',
-        'name': 'Family'
-    }
-    assert validate_row(complex_emoji, 1) is not None

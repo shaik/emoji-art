@@ -16,10 +16,9 @@ def is_valid_emoji(emoji: str) -> bool:
     """
     Validate if the string is a single emoji character or sequence.
     Handles various emoji formats including:
-    - Single unicode emojis (😀)
-    - Emoji with variation selectors (❤️)
-    - Emoji with skin tone modifiers (👍🏻)
-    - Zero-width joiner sequences (👨‍👩‍👧‍👦)
+    - Single unicode emojis (🟩)
+    - Basic shapes (⬛)
+    - Symbols (🚹)
     """
     if not emoji or len(emoji.strip()) == 0:
         return False
@@ -44,23 +43,21 @@ def is_valid_emoji(emoji: str) -> bool:
             return True
             
         # For non-ZWJ emojis, check if it's a single emoji
-        # This includes variation selectors and skin tone modifiers
         base_char = normalized[0]
-        if not (0x1F300 <= ord(base_char) <= 0x1F9FF or  # Emoji range
-                0x2600 <= ord(base_char) <= 0x26FF or    # Misc symbols
-                0x2700 <= ord(base_char) <= 0x27BF):     # Dingbats
+        
+        # Check if it's only one emoji character
+        if len(normalized) > 1 and not any(c == '\ufe0f' for c in normalized[1:]):
             return False
             
-        # Check remaining characters are only modifiers
-        for c in normalized[1:]:
-            if not (c == '\ufe0f' or                    # Variation selector
-                   0x1F3FB <= ord(c) <= 0x1F3FF or      # Skin tone
-                   unicodedata.category(c).startswith('M')):  # Combining marks
-                return False
-                
-        return True
-        
-    except (UnicodeEncodeError, ValueError, IndexError):
+        return (
+            0x1F300 <= ord(base_char) <= 0x1F9FF or  # Emoji range
+            0x2600 <= ord(base_char) <= 0x26FF or    # Misc symbols
+            0x2700 <= ord(base_char) <= 0x27BF or    # Dingbats
+            0x2B00 <= ord(base_char) <= 0x2BFF       # Misc symbols and arrows (includes ⬛)
+        )
+            
+    except Exception as e:
+        logger.error(f"Error validating emoji: {str(e)}")
         return False
 
 def is_valid_hex_color(color: str) -> bool:
@@ -73,30 +70,36 @@ def validate_row(row: Dict[str, str], row_number: int) -> Optional[Dict[str, str
     Returns the validated row if valid, None if invalid.
     """
     try:
-        # Check for required fields
-        if not all(field in row for field in Config.EMOJI_CSV_HEADERS):
-            raise CSVValidationError(f"Missing required fields. Expected: {Config.EMOJI_CSV_HEADERS}")
+        emoji = row['Emoji'].strip()
+        ascii_code = row['ASCII Code'].strip()
+        hex_color = row['Hex Color'].strip()
 
         # Validate emoji
-        if not is_valid_emoji(row['emoji']):
-            raise CSVValidationError("Invalid emoji character")
+        if not is_valid_emoji(emoji):
+            logger.warning(f"Invalid emoji in row {row_number}: {emoji}")
+            return None
 
-        # Validate color
-        if not is_valid_hex_color(row['color']):
-            raise CSVValidationError("Invalid hex color code")
+        # Validate ASCII code is a number
+        try:
+            int(ascii_code)
+        except ValueError:
+            logger.warning(f"Invalid ASCII code in row {row_number}: {ascii_code}")
+            return None
 
-        # Validate name
-        if not row['name'] or len(row['name'].strip()) == 0:
-            raise CSVValidationError("Name cannot be empty")
+        # Validate hex color
+        if not is_valid_hex_color(hex_color):
+            logger.warning(f"Invalid hex color in row {row_number}: {hex_color}")
+            return None
 
+        # Return validated row with original column names
         return {
-            'emoji': row['emoji'].strip(),
-            'color': row['color'].upper(),
-            'name': row['name'].strip()
+            'Emoji': emoji,
+            'ASCII Code': ascii_code,
+            'Hex Color': hex_color
         }
 
-    except CSVValidationError as e:
-        logger.warning(f"Row {row_number}: {str(e)} - {row}")
+    except KeyError as e:
+        logger.error(f"Missing required column in row {row_number}: {str(e)}")
         return None
     except Exception as e:
         logger.error(f"Unexpected error in row {row_number}: {str(e)} - {row}")
@@ -122,8 +125,8 @@ def parse_emoji_csv() -> List[Dict[str, str]]:
             
             # Validate headers
             headers = reader.fieldnames
-            if headers != Config.EMOJI_CSV_HEADERS:
-                error_msg = f"Invalid CSV headers. Expected: {Config.EMOJI_CSV_HEADERS}, Got: {headers}"
+            if headers != ['Emoji', 'ASCII Code', 'Hex Color']:
+                error_msg = f"Invalid CSV headers. Expected: ['Emoji', 'ASCII Code', 'Hex Color'], Got: {headers}"
                 logger.error(error_msg)
                 raise CSVValidationError(error_msg)
             

@@ -9,6 +9,7 @@ from utils.csv_parser import parse_emoji_csv, CSVValidationError
 from utils.build_manager import BuildManager
 from utils.color_utils import color_distance
 from PIL import Image
+from typing import List, Dict
 
 def create_app():
     """Application factory function."""
@@ -189,8 +190,62 @@ def create_app():
                 'message': 'Internal server error'
             }), 500
 
+    def process_image(image_path: str, grid_size: int = 32) -> List[List[Dict[str, str]]]:
+        """Process the image and return a grid of emoji data."""
+        try:
+            # Open and process image
+            with Image.open(image_path) as img:
+                # Resize image to grid size while maintaining aspect ratio
+                img.thumbnail((grid_size, grid_size))
+                width, height = img.size
+                
+                # Convert to RGB if necessary
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+                
+                # Create grid
+                grid = []
+                for y in range(height):
+                    row = []
+                    for x in range(width):
+                        # Get pixel color
+                        r, g, b = img.getpixel((x, y))
+                        pixel_color = f"#{r:02x}{g:02x}{b:02x}"
+                        
+                        # Find closest emoji
+                        closest_emoji = None
+                        min_distance = float('inf')
+                        
+                        for emoji_data in app.emoji_db:
+                            emoji_color = emoji_data['Hex Color']
+                            distance = color_distance(pixel_color, emoji_color)
+                            
+                            if distance < min_distance:
+                                min_distance = distance
+                                closest_emoji = emoji_data
+                        
+                        if closest_emoji:
+                            row.append({
+                                'emoji': closest_emoji['Emoji'],
+                                'color': closest_emoji['Hex Color']
+                            })
+                        else:
+                            # Fallback emoji if no match found
+                            row.append({
+                                'emoji': '⬜',
+                                'color': '#FFFFFF'
+                            })
+                    
+                    grid.append(row)
+                
+                return grid
+                
+        except Exception as e:
+            app.logger.error(f"Error processing image: {str(e)}")
+            raise
+
     @app.route('/process-image', methods=['POST'])
-    def process_image():
+    def process_image_endpoint():
         """Process uploaded image and return grid data."""
         if 'image' not in request.files:
             return jsonify({'error': 'No image provided'}), 400
@@ -204,77 +259,19 @@ def create_app():
         if not grid_size or not grid_size.isdigit() or int(grid_size) <= 0:
             return jsonify({'error': 'Invalid grid size'}), 400
         
-        # Validate aspect ratio
-        aspect_ratio = request.form.get('aspectRatio')
-        if not aspect_ratio or ':' not in aspect_ratio:
-            return jsonify({'error': 'Invalid aspect ratio'}), 400
-        
         try:
-            # Check if file is an image
-            try:
-                img = Image.open(image)
-            except Exception as e:
-                app.logger.error(f'Invalid image format: {str(e)}')
-                return jsonify({'error': 'Invalid image format'}), 400
+            # Save image to file
+            filename = secure_filename(image.filename)
+            timestamp = str(int(time.time()))
+            filename = f"{timestamp}_{filename}"
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            image.save(file_path)
             
-            # Convert to RGB if necessary
-            if img.mode != 'RGB':
-                img = img.convert('RGB')
-            
-            # Calculate dimensions based on aspect ratio
-            width, height = map(int, aspect_ratio.split(':'))
-            max_dimension = 800  # Maximum dimension
-            
-            if width > height:
-                new_width = max_dimension
-                new_height = int(max_dimension * (height / width))
-            else:
-                new_height = max_dimension
-                new_width = int(max_dimension * (width / height))
-            
-            # Resize image
-            img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-            
-            # Create grid
-            grid_size = int(grid_size)
-            cell_width = new_width // grid_size
-            cell_height = new_height // grid_size
-            
-            grid = []
-            for y in range(grid_size):
-                row = []
-                for x in range(grid_size):
-                    # Get cell region
-                    left = x * cell_width
-                    top = y * cell_height
-                    right = left + cell_width
-                    bottom = top + cell_height
-                    
-                    # Get average color of cell
-                    cell = img.crop((left, top, right, bottom))
-                    pixels = list(cell.getdata())
-                    avg_color = [
-                        sum(p[0] for p in pixels) // len(pixels),
-                        sum(p[1] for p in pixels) // len(pixels),
-                        sum(p[2] for p in pixels) // len(pixels)
-                    ]
-                    
-                    # Convert to hex
-                    hex_color = '#{:02x}{:02x}{:02x}'.format(*avg_color)
-                    
-                    # Add to grid
-                    row.append({
-                        'color': hex_color,
-                        'position': {'x': x, 'y': y}
-                    })
-                grid.append(row)
+            # Process image
+            grid = process_image(file_path, int(grid_size))
             
             return jsonify({
-                'grid': grid,
-                'dimensions': {
-                    'width': new_width,
-                    'height': new_height
-                }
+                'grid': grid
             })
         
         except Exception as e:
@@ -284,7 +281,7 @@ def create_app():
     @app.route('/data/emoji_data.csv')
     def serve_emoji_data():
         try:
-            return send_from_directory(os.path.join(os.path.dirname(__file__), 'data'), 'emoji_data..csv', mimetype='text/csv')
+            return send_from_directory(os.path.join(os.path.dirname(__file__), 'data'), 'emoji_data.csv', mimetype='text/csv')
         except Exception as e:
             app.logger.error(f'Error serving emoji data: {str(e)}')
             return jsonify({'error': 'Error serving emoji data'}), 500
@@ -298,8 +295,7 @@ def create_app():
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(
-        host=app.config['HOST'],
-        port=app.config['PORT'],
-        debug=app.config['DEBUG']
-    )
+    # Load emoji data when the app starts
+    app.emoji_db = parse_emoji_csv()
+    # Run the app on all network interfaces
+    app.run(host='0.0.0.0', port=5000, debug=True)

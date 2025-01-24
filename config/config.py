@@ -8,7 +8,7 @@ class Config:
 
     # CSV Configuration
     EMOJI_CSV_PATH = os.path.join('data', 'emoji_data.csv')
-    EMOJI_CSV_HEADERS = ['emoji', 'color', 'name']
+    EMOJI_CSV_HEADERS = ['Emoji', 'ASCII Code', 'Hex Color']
     
     # Color validation
     HEX_COLOR_PATTERN = r'^#[0-9A-Fa-f]{6}$'

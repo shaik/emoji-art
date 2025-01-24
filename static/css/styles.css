@@ -55,7 +55,9 @@ body {
 }
 
 /* Upload Section Styles */
-.upload-section {
+.upload-section,
+.emoji-art-section,
+.debug-section {
     background: white;
     padding: 2rem;
     border-radius: var(--border-radius);
@@ -63,184 +65,15 @@ body {
     margin-bottom: 2rem;
 }
 
-.upload-section h2 {
+.upload-section h2,
+.emoji-art-section h2,
+.debug-section h2 {
     margin-top: 0;
     margin-bottom: var(--spacing);
     color: var(--text-color);
+    font-size: 1.5rem;
 }
 
-.upload-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing);
-}
-
-.upload-controls {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--spacing);
-    margin-bottom: 1.5rem;
-}
-
-@media (min-width: 768px) {
-    .upload-controls {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    }
-}
-
-/* Drag and drop area styles */
-.drag-drop-area {
-    border: 2px dashed var(--primary-color);
-    border-radius: var(--border-radius);
-    padding: 2rem;
-    text-align: center;
-    cursor: pointer;
-    position: relative;
-    transition: all 0.3s ease;
-    background: var(--secondary-color);
-    min-height: 150px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.drag-drop-area.dragover {
-    background: #e3f2fd;
-    border-color: #2196f3;
-}
-
-.drag-drop-text {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.drag-drop-text span:first-child {
-    font-size: 1.2rem;
-    font-weight: 500;
-}
-
-.drag-drop-text span:last-child {
-    font-size: 0.9rem;
-    color: #666;
-}
-
-.file-input {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    opacity: 0;
-    cursor: pointer;
-}
-
-/* Form controls styles */
-.aspect-ratio-controls,
-.grid-size-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-label {
-    font-weight: 500;
-    color: var(--text-color);
-}
-
-select {
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: var(--border-radius);
-    font-size: 1rem;
-    background: white;
-}
-
-.button {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: var(--border-radius);
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.button:hover {
-    background: var(--primary-color-dark);
-}
-
-.button:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-}
-
-/* Preview section styles */
-.preview-section {
-    margin-top: var(--spacing);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 300px;
-    background: var(--secondary-color);
-    border-radius: var(--border-radius);
-    overflow: hidden;
-}
-
-.image-preview {
-    max-width: 100%;
-    max-height: 300px;
-}
-
-.preview-canvas,
-.grid-canvas {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-
-/* Message styles */
-.error-message {
-    color: var(--error-color);
-    padding: 0.5rem;
-    margin-top: 0.5rem;
-    border-radius: var(--border-radius);
-    display: none;
-}
-
-.error-message.show {
-    display: block;
-}
-
-.status-message {
-    text-align: center;
-    margin-top: var(--spacing);
-    color: var(--primary-color);
-}
-
-/* Footer styles */
-.app-footer {
-    margin-top: 2rem;
-    text-align: center;
-    color: #666;
-}
-
-.build-info {
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-}
-
-.build-info p {
-    margin: 0.2rem 0;
-}
-
-.footer-note {
-    font-size: 0.9rem;
-    color: #999;
-}
-
-/* Upload Section Styles */
 .upload-section {
     max-width: 1200px;
     margin: 2rem auto;
@@ -284,13 +117,6 @@ select {
     background-color: var(--primary-color-dark);
 }
 
-.aspect-ratio-controls,
-.grid-size-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
 select {
     padding: 0.5rem;
     border: 1px solid var(--border-color);
@@ -306,13 +132,11 @@ select {
     justify-content: center;
 }
 
-.preview-canvas,
-.grid-canvas {
+.preview-image {
     max-width: 100%;
     height: auto;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
-    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .status-message {
@@ -409,38 +233,137 @@ select {
     text-align: center;
 }
 
-/* Button Styles */
-.upload-button {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
+/* Font Size Controls */
+.font-size-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.font-size-btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border-color);
+    background: white;
     border-radius: var(--border-radius);
     cursor: pointer;
-    font-size: 1rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    display: block;
-    margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    font-size: 1.5rem;
+    color: var(--text-color);
+    transition: all 0.2s ease;
+    padding: 0;
 }
 
-.upload-button:hover {
-    background-color: var(--primary-color-dark);
-    transform: translateY(-2px);
+.font-size-btn:hover {
+    background: var(--background-color);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
 }
 
-.upload-button:disabled {
-    background-color: var(--secondary-color);
-    cursor: not-allowed;
-    transform: none;
+.font-size-btn:active {
+    transform: scale(0.95);
 }
 
-.button-icon {
-    font-size: 1.2rem;
+.font-size-btn span {
+    line-height: 1;
+    user-select: none;
+}
+
+.font-size-display {
+    min-width: 60px;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-color);
+    background: var(--background-color);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+/* Emoji Art Section */
+.emoji-art-section {
+    text-align: center;
+}
+
+.emoji-art-container {
+    width: 100%;
+    margin: 1rem auto;
+    padding: 1.5rem;
+    background: var(--background-color);
+    border-radius: var(--border-radius);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    overflow-x: auto;
+}
+
+.emoji-art-wrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.emoji-art {
+    font-family: monospace;
+    white-space: pre;
+    text-align: center;
+    line-height: 1;
+    margin: 0;
+    padding: 1rem;
+    letter-spacing: 0;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: inline-grid;
+    gap: 0;
+}
+
+.emoji-art span {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Responsive font sizes for different grid widths */
+@media (min-width: 768px) {
+    .emoji-art {
+        font-size: calc(10px + 0.2vw);
+    }
+}
+
+@media (min-width: 1024px) {
+    .emoji-art {
+        font-size: calc(12px + 0.3vw);
+    }
+}
+
+/* Adjust font size based on grid width */
+.emoji-art[data-grid-width="8"],
+.emoji-art[data-grid-width="16"] {
+    font-size: calc(16px + 0.4vw);
+}
+
+.emoji-art[data-grid-width="32"],
+.emoji-art[data-grid-width="64"] {
+    font-size: calc(12px + 0.3vw);
+}
+
+.emoji-art[data-grid-width="100"],
+.emoji-art[data-grid-width="120"] {
+    font-size: calc(8px + 0.2vw);
+}
+
+/* Handle extra wide grids */
+@media (max-width: 768px) {
+    .emoji-art[data-grid-width="100"],
+    .emoji-art[data-grid-width="120"] {
+        font-size: calc(6px + 0.1vw);
+    }
 }
 
 /* Footer Styles */
@@ -467,61 +390,4 @@ select {
     font-size: 0.9rem;
     color: var(--text-color);
     opacity: 0.8;
-}
-
-/* Emoji Art Display Styles */
-.emoji-art-container {
-    width: 100%;
-    margin: 2rem auto;
-    padding: 1rem;
-    background: var(--bg-secondary);
-    border-radius: var(--border-radius);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    overflow-x: auto;
-}
-
-.emoji-art-wrapper {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-}
-
-.emoji-art {
-    font-family: monospace;
-    white-space: pre;
-    text-align: center;
-    line-height: 1;
-    font-size: calc(8px + 0.1vw);
-    max-width: 100%;
-    margin: 0;
-    padding: 1rem;
-}
-
-/* Responsive font sizes for different grid sizes */
-@media (min-width: 768px) {
-    .emoji-art {
-        font-size: calc(10px + 0.2vw);
-    }
-}
-
-@media (min-width: 1024px) {
-    .emoji-art {
-        font-size: calc(12px + 0.3vw);
-    }
-}
-
-/* Adjust font size based on grid size */
-.emoji-art[data-grid-size="8"],
-.emoji-art[data-grid-size="16"] {
-    font-size: calc(16px + 0.4vw);
-}
-
-.emoji-art[data-grid-size="32"],
-.emoji-art[data-grid-size="64"] {
-    font-size: calc(12px + 0.3vw);
-}
-
-.emoji-art[data-grid-size="100"],
-.emoji-art[data-grid-size="120"] {
-    font-size: calc(8px + 0.2vw);
 }

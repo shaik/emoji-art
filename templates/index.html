@@ -28,24 +28,14 @@
 
                     <div class="upload-controls">
                         <div class="grid-size-controls">
-                            <label for="gridSize">Grid Size:</label>
+                            <label for="gridSize">Grid Width:</label>
                             <select id="gridSize" name="gridSize">
-                                <option value="8">8x8</option>
-                                <option value="16">16x16</option>
-                                <option value="32" selected>32x32</option>
-                                <option value="64">64x64</option>
-                                <option value="100">100x100</option>
-                                <option value="120">120x120</option>
-                            </select>
-                        </div>
-
-                        <div class="aspect-ratio-controls">
-                            <label for="aspectRatio">Aspect Ratio:</label>
-                            <select id="aspectRatio" name="aspectRatio">
-                                <option value="1:1" selected>1:1 (Square)</option>
-                                <option value="4:3">4:3</option>
-                                <option value="16:9">16:9</option>
-                                <option value="original">Original</option>
+                                <option value="8">8 emojis</option>
+                                <option value="16">16 emojis</option>
+                                <option value="32" selected>32 emojis</option>
+                                <option value="64">64 emojis</option>
+                                <option value="100">100 emojis</option>
+                                <option value="120">120 emojis</option>
                             </select>
                         </div>
                     </div>
@@ -54,12 +44,27 @@
 
                     <div class="preview-section">
                         <div id="imagePreview" class="image-preview"></div>
-                        <canvas id="previewCanvas" class="preview-canvas"></canvas>
-                        <canvas id="gridCanvas" class="grid-canvas"></canvas>
+                        <canvas id="previewCanvas" class="preview-canvas" style="display: none;"></canvas>
                     </div>
-
-                    <button type="submit" id="processImage" class="button" disabled>Create Emoji Art</button>
                 </form>
+            </section>
+
+            <section class="emoji-art-section">
+                <h2>Emoji Art</h2>
+                <div class="font-size-controls">
+                    <button id="decreaseFontSize" class="font-size-btn" title="Decrease font size">
+                        <span>-</span>
+                    </button>
+                    <div id="fontSizeDisplay" class="font-size-display">100%</div>
+                    <button id="increaseFontSize" class="font-size-btn" title="Increase font size">
+                        <span>+</span>
+                    </button>
+                </div>
+                <div class="emoji-art-container">
+                    <div class="emoji-art-wrapper">
+                        <pre id="emojiArtOutput" class="emoji-art"></pre>
+                    </div>
+                </div>
             </section>
 
             <section class="debug-section">
@@ -82,10 +87,5 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <div class="emoji-art-container">
-        <div class="emoji-art-wrapper">
-            <pre id="emojiArtOutput" class="emoji-art"></pre>
-        </div>
-    </div>
 </body>
 </html>

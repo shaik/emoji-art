@@ -15,22 +15,22 @@ const fileInput = document.getElementById('fileInput');
 const dragDropArea = document.getElementById('dragDropArea');
 const imagePreview = document.getElementById('imagePreview');
 const previewCanvas = document.getElementById('previewCanvas');
-const gridCanvas = document.getElementById('gridCanvas');
-const processImageBtn = document.getElementById('processImage');
 const gridSizeSelect = document.getElementById('gridSize');
 const errorMessage = document.getElementById('errorMessage');
-const aspectRatioSelect = document.getElementById('aspectRatio');
 const uploadForm = document.getElementById('uploadForm');
+const increaseFontBtn = document.getElementById('increaseFontSize');
+const decreaseFontBtn = document.getElementById('decreaseFontSize');
+const fontSizeDisplay = document.getElementById('fontSizeDisplay');
 
-// Canvas contexts
+// Canvas context
 const previewCtx = previewCanvas?.getContext('2d', { willReadFrequently: true });
-const gridCtx = gridCanvas?.getContext('2d', { willReadFrequently: true });
 
 // State
 let currentImage = null;
 let currentGridSize = parseInt(gridSizeSelect?.value || '32');
-let currentAspectRatio = aspectRatioSelect?.value || '1:1';
 let emojiDatabase = [];
+let baseFontSize = 0;
+let currentFontSizePercent = 100;
 
 // Load emoji database
 async function loadEmojiDatabase() {
@@ -83,22 +83,66 @@ async function loadEmojiDatabase() {
 
 // Event Listeners
 function initializeEventListeners() {
-    fileInput?.addEventListener('change', handleFileSelect);
-    dragDropArea?.addEventListener('dragover', handleDragOver);
-    dragDropArea?.addEventListener('drop', handleDrop);
-    dragDropArea?.addEventListener('click', () => fileInput.click());
-    gridSizeSelect?.addEventListener('change', handleGridSizeChange);
-    aspectRatioSelect?.addEventListener('change', handleAspectRatioChange);
+    if (fileInput) {
+        fileInput.addEventListener('change', handleFileSelect);
+    }
+
+    if (dragDropArea) {
+        dragDropArea.addEventListener('dragover', handleDragOver);
+        dragDropArea.addEventListener('drop', handleDrop);
+        dragDropArea.addEventListener('click', () => fileInput.click());
+    }
+
+    if (gridSizeSelect) {
+        gridSizeSelect.addEventListener('change', () => {
+            if (currentImage) {
+                processImage(currentImage);
+            }
+        });
+    }
+
+    if (increaseFontBtn) {
+        increaseFontBtn.addEventListener('click', () => {
+            adjustFontSize(10); // Increase by 10%
+        });
+    }
+
+    if (decreaseFontBtn) {
+        decreaseFontBtn.addEventListener('click', () => {
+            adjustFontSize(-10); // Decrease by 10%
+        });
+    }
+}
+
+function adjustFontSize(change) {
+    const emojiArt = document.getElementById('emojiArtOutput');
+    if (!emojiArt) return;
+
+    // Initialize base font size if not set
+    if (!baseFontSize) {
+        const computedStyle = window.getComputedStyle(emojiArt);
+        baseFontSize = parseFloat(computedStyle.fontSize);
+    }
+
+    // Update percentage
+    currentFontSizePercent = Math.max(50, Math.min(200, currentFontSizePercent + change));
     
-    // Prevent form submission and handle process image click
-    uploadForm?.addEventListener('submit', (e) => {
-        e.preventDefault();
-        if (currentImage) {
-            processImage(currentImage);
-        } else {
-            showError('Please upload an image first');
-        }
-    });
+    // Update display
+    if (fontSizeDisplay) {
+        fontSizeDisplay.textContent = `${currentFontSizePercent}%`;
+    }
+
+    // Apply new font size
+    const newSize = (baseFontSize * currentFontSizePercent / 100);
+    emojiArt.style.fontSize = `${newSize}px`;
+}
+
+function updateEmojiArtFontSize() {
+    const emojiArt = document.getElementById('emojiArtOutput');
+    if (emojiArt) {
+        const baseSize = parseInt(window.getComputedStyle(emojiArt).fontSize);
+        emojiArt.style.fontSize = `${baseSize * currentFontSizePercent / 100}px`;
+    }
 }
 
 if (typeof window !== 'undefined') {
@@ -117,8 +161,6 @@ function handleFileSelect(event) {
 
 function handleDrop(event) {
     event.preventDefault();
-    dragDropArea.classList.remove('drag-over');
-    
     const file = event.dataTransfer.files[0];
     if (file) {
         processFile(file);
@@ -127,107 +169,84 @@ function handleDrop(event) {
 
 function handleDragOver(event) {
     event.preventDefault();
-    dragDropArea.classList.add('drag-over');
-}
-
-function handleGridSizeChange(event) {
-    const newSize = parseInt(event.target.value);
-    if (!isNaN(newSize) && newSize > 0) {
-        currentGridSize = newSize;
-        document.documentElement.style.setProperty('--grid-size', newSize);
-        if (currentImage) {
-            processImage(currentImage);
-        }
-    }
-}
-
-function handleAspectRatioChange(event) {
-    const select = document.getElementById('aspectRatio');
-    const newRatio = select.value;
-    if (newRatio) {
-        currentAspectRatio = newRatio;
-        debugLog('Aspect ratio changed:', currentAspectRatio);
-        if (currentImage) {
-            processImage(currentImage);
-        }
-    }
 }
 
 // Image processing functions
 function processFile(file) {
     if (!file || !file.type.startsWith('image/')) {
-        showError('Please upload an image file');
+        showError('Please upload a valid image file');
         return;
     }
 
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = (e) => {
         const img = new Image();
-        img.onload = function() {
-            currentImage = img;
-            processImageBtn.disabled = false; // Enable the button when image is loaded
+        img.onload = () => {
             processImage(img);
         };
         img.src = e.target.result;
+        
+        // Show preview
+        imagePreview.innerHTML = '';
+        const preview = new Image();
+        preview.src = e.target.result;
+        preview.className = 'preview-image';
+        imagePreview.appendChild(preview);
     };
     reader.readAsDataURL(file);
 }
 
 function processImage(img) {
-    if (!img) {
-        showError('No image loaded');
-        return;
-    }
-
-    const dimensions = calculateDimensions(img);
-    const canvas = document.getElementById('previewCanvas');
-    if (!canvas) return;
-
-    canvas.width = dimensions.width;
-    canvas.height = dimensions.height;
-
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) return;
-
-    ctx.drawImage(img, 0, 0, dimensions.width, dimensions.height);
-    drawGrid(ctx, dimensions.width, dimensions.height, currentGridSize);
-    debugLog('Image processed with grid size:', currentGridSize);
-    renderEmojiGrid();
-    debugLog('Image processed and emoji art rendered');
-}
-
-function calculateDimensions(img) {
+    currentImage = img;
+    
+    // Set canvas dimensions maintaining aspect ratio
     const maxWidth = 800;
     const maxHeight = 800;
     let width = img.width;
     let height = img.height;
-
-    // First, scale down if too large while maintaining original aspect ratio
+    
     if (width > maxWidth || height > maxHeight) {
         const ratio = Math.min(maxWidth / width, maxHeight / height);
-        width = Math.round(width * ratio);
-        height = Math.round(height * ratio);
+        width = width * ratio;
+        height = height * ratio;
     }
+    
+    previewCanvas.width = width;
+    previewCanvas.height = height;
+    
+    // Draw image on preview canvas
+    previewCtx.drawImage(img, 0, 0, width, height);
+    
+    // Render emoji grid
+    renderEmojiGrid();
+}
 
-    return { width, height };
+function calculateDimensions(img) {
+    const gridWidth = parseInt(gridSizeSelect.value);
+    const aspectRatio = img.width / img.height;
+    const gridHeight = Math.round(gridWidth / aspectRatio);
+
+    return {
+        width: gridWidth,
+        height: gridHeight,
+        canvasWidth: previewCanvas.width,
+        canvasHeight: previewCanvas.height
+    };
 }
 
 function getAverageColor(x, y, width, height) {
-    if (!previewCtx) {
-        return { r: 0, g: 0, b: 0 };
-    }
-
     const imageData = previewCtx.getImageData(x, y, width, height);
     const data = imageData.data;
+    
     let r = 0, g = 0, b = 0;
     const pixels = data.length / 4;
-
+    
     for (let i = 0; i < data.length; i += 4) {
         r += data[i];
         g += data[i + 1];
         b += data[i + 2];
     }
-
+    
     return {
         r: Math.round(r / pixels),
         g: Math.round(g / pixels),
@@ -235,129 +254,92 @@ function getAverageColor(x, y, width, height) {
     };
 }
 
-function drawGrid(ctx, width, height, gridSize) {
-    if (!gridCtx) return;
-
-    const cellWidth = width / gridSize;
-    const cellHeight = height / gridSize;
-
-    gridCanvas.width = width;
-    gridCanvas.height = height;
-
-    gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
-
-    // Draw cells
-    for (let y = 0; y < gridSize; y++) {
-        for (let x = 0; x < gridSize; x++) {
-            const color = getAverageColor(
-                Math.floor(x * cellWidth),
-                Math.floor(y * cellHeight),
-                Math.ceil(cellWidth),
-                Math.ceil(cellHeight)
-            );
-            gridCtx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
-            gridCtx.fillRect(
-                x * cellWidth,
-                y * cellHeight,
-                cellWidth,
-                cellHeight
-            );
-        }
-    }
-
-    // Draw grid lines
-    gridCtx.strokeStyle = '#ccc';
-    gridCtx.lineWidth = 1;
-
-    // Vertical lines
-    for (let x = 0; x <= gridSize; x++) {
-        gridCtx.beginPath();
-        gridCtx.moveTo(x * cellWidth, 0);
-        gridCtx.lineTo(x * cellWidth, gridCanvas.height);
-        gridCtx.stroke();
-    }
-
-    // Horizontal lines
-    for (let y = 0; y <= gridSize; y++) {
-        gridCtx.beginPath();
-        gridCtx.moveTo(0, y * cellHeight);
-        gridCtx.lineTo(gridCanvas.width, y * cellHeight);
-        gridCtx.stroke();
-    }
-}
-
 function showError(message) {
-    debugLog('Error:', message);
-    const errorElement = document.getElementById('errorMessage');
-    if (errorElement) {
-        errorElement.textContent = message;
-        errorElement.style.display = 'block';
+    if (errorMessage) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
         setTimeout(() => {
-            errorElement.style.display = 'none';
+            errorMessage.style.display = 'none';
         }, 3000);
     }
 }
 
 function findClosestEmoji(color) {
-    debugLog(`Finding closest emoji for color: rgb(${color.r}, ${color.g}, ${color.b})`);
+    if (!emojiDatabase.length) return '⬜';
     
     let minDistance = Infinity;
-    let closestEmoji = emojiDatabase[0];
-
-    for (const emojiData of emojiDatabase) {
+    let closestEmoji = null;
+    
+    for (const emoji of emojiDatabase) {
+        const emojiColor = emoji.color;
         const distance = Math.sqrt(
-            Math.pow(color.r - emojiData.color.r, 2) +
-            Math.pow(color.g - emojiData.color.g, 2) +
-            Math.pow(color.b - emojiData.color.b, 2)
+            Math.pow(color.r - emojiColor.r, 2) +
+            Math.pow(color.g - emojiColor.g, 2) +
+            Math.pow(color.b - emojiColor.b, 2)
         );
-
+        
         if (distance < minDistance) {
             minDistance = distance;
-            closestEmoji = emojiData;
+            closestEmoji = emoji.emoji;
         }
     }
-
-    debugLog(`Selected emoji: ${closestEmoji.emoji} with distance: ${minDistance.toFixed(2)}`);
-    return closestEmoji.emoji;
+    
+    return closestEmoji || '⬜';
 }
 
 function renderEmojiGrid() {
     const emojiArtOutput = document.getElementById('emojiArtOutput');
-    if (!emojiArtOutput || !previewCtx) return;
+    if (!emojiArtOutput || !previewCtx || !currentImage) return;
 
-    const gridSize = parseInt(gridSizeSelect.value);
-    const width = previewCanvas.width;
-    const height = previewCanvas.height;
-    const cellWidth = width / gridSize;
-    const cellHeight = height / gridSize;
+    const dimensions = calculateDimensions(currentImage);
+    const gridWidth = dimensions.width;
+    const gridHeight = dimensions.height;
+    
+    const cellWidth = dimensions.canvasWidth / gridWidth;
+    const cellHeight = dimensions.canvasHeight / gridHeight;
 
     let emojiGrid = '';
     
     // Set the data-grid-size attribute for responsive sizing
-    emojiArtOutput.setAttribute('data-grid-size', gridSize);
+    emojiArtOutput.setAttribute('data-grid-width', gridWidth);
+    emojiArtOutput.setAttribute('data-grid-height', gridHeight);
 
-    for (let y = 0; y < gridSize; y++) {
-        for (let x = 0; x < gridSize; x++) {
+    // Set grid template columns
+    emojiArtOutput.style.gridTemplateColumns = `repeat(${gridWidth}, 1fr)`;
+    
+    for (let y = 0; y < gridHeight; y++) {
+        for (let x = 0; x < gridWidth; x++) {
             const color = getAverageColor(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
             const emoji = findClosestEmoji(color);
-            emojiGrid += emoji;
+            emojiGrid += `<span>${emoji}</span>`;
         }
-        emojiGrid += '\n';
     }
 
-    emojiArtOutput.textContent = emojiGrid;
+    emojiArtOutput.innerHTML = emojiGrid;
+    emojiArtOutput.style.fontSize = ''; // Reset font size to get proper base size
+    
+    // Reset base font size for new grid
+    baseFontSize = parseFloat(window.getComputedStyle(emojiArtOutput).fontSize);
+    
+    // Reapply current font size percentage
+    if (currentFontSizePercent !== 100) {
+        const newSize = (baseFontSize * currentFontSizePercent / 100);
+        emojiArtOutput.style.fontSize = `${newSize}px`;
+    }
     
     // Adjust container width based on grid size
     const container = document.querySelector('.emoji-art-container');
     if (container) {
-        if (gridSize <= 32) {
+        if (gridWidth <= 32) {
             container.style.maxWidth = '800px';
-        } else if (gridSize <= 64) {
+        } else if (gridWidth <= 64) {
             container.style.maxWidth = '1000px';
         } else {
             container.style.maxWidth = '1200px';
         }
     }
+
+    debugLog(`Grid rendered with dimensions: ${gridWidth}x${gridHeight}`);
 }
 
 // Initialize debug mode from localStorage or URL parameter
@@ -399,10 +381,8 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         calculateDimensions,
         getAverageColor,
-        drawGrid,
         showError,
         handleGridSizeChange,
-        handleAspectRatioChange,
         toggleDebugMode,
         processFile,
         processImage,
@@ -410,8 +390,6 @@ if (typeof module !== 'undefined' && module.exports) {
         set debugMode(value) { debugMode = value; },
         get currentGridSize() { return currentGridSize; },
         set currentGridSize(value) { currentGridSize = parseInt(value) || 32; },
-        get currentAspectRatio() { return currentAspectRatio; },
-        set currentAspectRatio(value) { currentAspectRatio = value || '1:1'; },
         initDebugMode,
         EmojiArt
     };

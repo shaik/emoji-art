@@ -1,0 +1,181 @@
+[PROJECT_METADATA]
+NAME=EmojiArt
+TYPE=Web_Application
+FRAMEWORK=Flask
+FRONTEND=HTML/CSS/JS
+LAST_UPDATED=2025-01-24T23:50:54+02:00
+PRIMARY_LANGUAGE=Python
+SECONDARY_LANGUAGES=JavaScript,HTML,CSS
+DEVELOPMENT_STATUS=Active
+
+[CORE_PURPOSE]
+Web application that transforms uploaded images into emoji art by analyzing color patterns and mapping them to closest matching emojis. Uses grid-based approach for pixelation and emoji mapping.
+
+[ARCHITECTURE]
+BACKEND:
+- Flask server (app.py)
+- RESTful endpoints for image processing
+- CSV-based emoji database with color mappings
+- Image processing using PIL
+- Debug mode support
+
+FRONTEND:
+- Single page application
+- Drag-and-drop file upload
+- Real-time grid preview
+- Responsive design
+- Debug toggle functionality
+
+[KEY_COMPONENTS]
+1. app.py:
+   - Main Flask application
+   - Image processing logic
+   - Route handlers
+   - External connections enabled
+
+2. utils/csv_parser.py:
+   - Emoji data parsing
+   - Row validation
+   - Non-ASCII character support
+   - Error handling
+
+3. static/js/main.js:
+   - File handling
+   - Grid rendering
+   - Color averaging
+   - Emoji mapping
+   - Debug utilities
+
+4. static/css/styles.css:
+   - Modern pastel theme
+   - Responsive design
+   - Grid-based layouts
+   - Dynamic font sizing
+   - Mobile optimization
+
+[DATA_STRUCTURES]
+EMOJI_DATABASE_FORMAT:
+- Emoji: Unicode character
+- ASCII_Code: String representation
+- Hex_Color: RGB color value
+
+GRID_SIZES=[8x8,16x16,32x32,64x64,100x100,120x120]
+ASPECT_RATIOS=[1:1,4:3,16:9,original]
+
+[CRITICAL_FEATURES]
+1. Image Upload:
+   - Drag-and-drop support
+   - File type validation
+   - Size restrictions
+   - Preview generation
+
+2. Grid System:
+   - Multiple size options (8x8 to 120x120)
+   - Dynamic scaling
+   - Responsive container
+   - Aspect ratio preservation
+
+3. Color Processing:
+   - Average color calculation
+   - Nearest emoji matching
+   - Color distance algorithms
+   - Performance optimizations
+
+4. Debug Mode:
+   - Performance logging
+   - Error tracking
+   - State monitoring
+   - Build information display
+
+[DESIGN_DECISIONS]
+1. EMOJI_VALIDATION:
+   - Removed Unicode range limitations
+   - Accept all non-ASCII characters
+   - Return detailed error messages
+   - Tuple response format (is_valid, message)
+
+2. GIT_MANAGEMENT:
+   - Exclude node_modules
+   - Ignore package-lock.json
+   - Include start/stop scripts
+   - Maintain build info
+
+3. RESPONSIVE_DESIGN:
+   - Dynamic container sizing
+   - Grid-size-based font scaling
+   - Mobile-first approach
+   - Progressive enhancement
+
+4. PERFORMANCE_OPTIMIZATION:
+   - Async image processing
+   - Efficient color matching
+   - Optimized grid rendering
+   - Caching strategies
+
+[DEPENDENCIES]
+PYTHON:
+- Flask
+- Pillow
+- pytest
+
+NODE:
+- Managed via package.json
+- node_modules ignored in git
+
+[DEPLOYMENT]
+- Local development server
+- External connections enabled
+- Start/stop scripts provided
+- Debug mode toggle available
+
+[KNOWN_LIMITATIONS]
+1. Memory usage with large grids
+2. Processing time for high-resolution images
+3. Emoji color matching accuracy
+4. Mobile performance with large grids
+
+[FUTURE_CONSIDERATIONS]
+1. Image preprocessing options
+2. Custom emoji support
+3. Export functionality
+4. Social sharing features
+5. Server-side caching
+6. Progressive web app conversion
+
+[DEVELOPMENT_WORKFLOW]
+1. Local development using start.sh
+2. Debug mode for testing
+3. Git-based version control
+4. CSV updates for emoji database
+
+[SECURITY_CONSIDERATIONS]
+1. File upload validation
+2. No sensitive data storage
+3. Debug mode protection
+4. Error message sanitization
+
+[TESTING_STRATEGY]
+1. Unit tests for CSV parser
+2. Image processing validation
+3. Emoji matching accuracy
+4. Responsive design verification
+
+[BUILD_SYSTEM]
+- Build number tracking
+- Last updated timestamp
+- Version information
+- Debug mode toggle
+
+[MAINTENANCE_NOTES]
+1. Update emoji database periodically
+2. Monitor memory usage
+3. Optimize color matching
+4. Review error logs
+
+[COMMAND_REFERENCE]
+START: ./start.sh
+STOP: ./stop.sh
+DEBUG: Toggle in UI
+BUILD: Check footer info
+
+[END_CONTEXT]

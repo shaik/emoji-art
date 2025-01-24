@@ -469,42 +469,59 @@ select {
     opacity: 0.8;
 }
 
-/* Emoji Art Container Styles */
+/* Emoji Art Display Styles */
 .emoji-art-container {
     width: 100%;
-    max-width: 95vw;
-    margin: 20px auto;
+    margin: 2rem auto;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     overflow-x: auto;
-    text-align: center;
+}
+
+.emoji-art-wrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
 }
 
 .emoji-art {
-    display: inline-grid;
-    grid-auto-flow: row;
-    grid-template-columns: repeat(var(--grid-size), 1fr);
-    gap: 0;
-    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Android Emoji", "EmojiSymbols", sans-serif;
-    line-height: 1;
-    white-space: normal;
-}
-
-.emoji-art span {
-    display: inline-block;
-    width: 1em;
-    height: 1em;
+    font-family: monospace;
+    white-space: pre;
     text-align: center;
-    font-size: calc(16px * (32 / var(--grid-size)));
+    line-height: 1;
+    font-size: calc(8px + 0.1vw);
+    max-width: 100%;
+    margin: 0;
+    padding: 1rem;
 }
 
-@media screen and (max-width: 768px) {
-    .emoji-art span {
-        font-size: calc(12px * (32 / var(--grid-size)));
+/* Responsive font sizes for different grid sizes */
+@media (min-width: 768px) {
+    .emoji-art {
+        font-size: calc(10px + 0.2vw);
     }
 }
 
-.emoji-grid {
-    display: grid;
-    gap: 0;
-    width: fit-content;
-    margin: 0 auto;
+@media (min-width: 1024px) {
+    .emoji-art {
+        font-size: calc(12px + 0.3vw);
+    }
+}
+
+/* Adjust font size based on grid size */
+.emoji-art[data-grid-size="8"],
+.emoji-art[data-grid-size="16"] {
+    font-size: calc(16px + 0.4vw);
+}
+
+.emoji-art[data-grid-size="32"],
+.emoji-art[data-grid-size="64"] {
+    font-size: calc(12px + 0.3vw);
+}
+
+.emoji-art[data-grid-size="100"],
+.emoji-art[data-grid-size="120"] {
+    font-size: calc(8px + 0.2vw);
 }

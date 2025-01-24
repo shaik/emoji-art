@@ -35,6 +35,7 @@
                                 <option value="32" selected>32x32</option>
                                 <option value="64">64x64</option>
                                 <option value="100">100x100</option>
+                                <option value="120">120x120</option>
                             </select>
                         </div>
 
@@ -82,7 +83,9 @@
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <div class="emoji-art-container">
-        <pre id="emojiArtOutput" class="emoji-art"></pre>
+        <div class="emoji-art-wrapper">
+            <pre id="emojiArtOutput" class="emoji-art"></pre>
+        </div>
     </div>
 </body>
 </html>

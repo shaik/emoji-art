@@ -322,33 +322,42 @@ function findClosestEmoji(color) {
 }
 
 function renderEmojiGrid() {
-    const startTime = performance.now();
-    debugLog('Starting emoji grid rendering');
-
     const emojiArtOutput = document.getElementById('emojiArtOutput');
-    if (!emojiArtOutput) {
-        console.error('Could not find emoji art output element');
-        return;
-    }
+    if (!emojiArtOutput || !previewCtx) return;
 
-    let emojiArt = '';
-    const cellWidth = previewCanvas.width / currentGridSize;
-    const cellHeight = previewCanvas.height / currentGridSize;
+    const gridSize = parseInt(gridSizeSelect.value);
+    const width = previewCanvas.width;
+    const height = previewCanvas.height;
+    const cellWidth = width / gridSize;
+    const cellHeight = height / gridSize;
 
-    // Create emoji grid
-    for (let y = 0; y < currentGridSize; y++) {
-        for (let x = 0; x < currentGridSize; x++) {
+    let emojiGrid = '';
+    
+    // Set the data-grid-size attribute for responsive sizing
+    emojiArtOutput.setAttribute('data-grid-size', gridSize);
+
+    for (let y = 0; y < gridSize; y++) {
+        for (let x = 0; x < gridSize; x++) {
             const color = getAverageColor(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
             const emoji = findClosestEmoji(color);
-            emojiArt += `<span>${emoji}</span>`;
+            emojiGrid += emoji;
         }
+        emojiGrid += '\n';
     }
 
-    // Set the emoji art
-    emojiArtOutput.innerHTML = emojiArt;
+    emojiArtOutput.textContent = emojiGrid;
     
-    const endTime = performance.now();
-    debugLog(`Emoji grid rendered in ${(endTime - startTime).toFixed(2)}ms`);
+    // Adjust container width based on grid size
+    const container = document.querySelector('.emoji-art-container');
+    if (container) {
+        if (gridSize <= 32) {
+            container.style.maxWidth = '800px';
+        } else if (gridSize <= 64) {
+            container.style.maxWidth = '1000px';
+        } else {
+            container.style.maxWidth = '1200px';
+        }
+    }
 }
 
 // Initialize debug mode from localStorage or URL parameter

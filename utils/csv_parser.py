@@ -1,7 +1,7 @@
 import csv
 import re
 import logging
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 import os
 from config.config import Config
 import unicodedata
@@ -12,53 +12,27 @@ class CSVValidationError(Exception):
     """Custom exception for CSV validation errors."""
     pass
 
-def is_valid_emoji(emoji: str) -> bool:
+def is_valid_emoji(emoji: str) -> Tuple[bool, str]:
     """
-    Validate if the string is a single emoji character or sequence.
-    Handles various emoji formats including:
-    - Single unicode emojis (🟩)
-    - Basic shapes (⬛)
-    - Symbols (🚹)
+    Validate if the string is a non-ASCII character or sequence.
+    Returns a tuple of (is_valid, error_message).
+    If valid, error_message will be empty.
     """
     if not emoji or len(emoji.strip()) == 0:
-        return False
+        return False, "Empty emoji"
     
     normalized = emoji.strip()
     
     try:
-        # Basic validation
-        if normalized.isascii() or normalized.isalnum():
-            return False
+        # Basic validation - only check if it's not pure ASCII
+        if normalized.isascii():
+            return False, "Contains only ASCII characters"
             
-        # Handle ZWJ sequences
-        if '\u200d' in normalized:
-            parts = normalized.split('\u200d')
-            # Check each part is a valid emoji character
-            for part in parts:
-                if not part:  # Empty part
-                    continue
-                # Check if the part is a valid emoji character
-                if all(unicodedata.category(c).startswith(('L', 'N', 'P', 'Z')) for c in part):
-                    return False
-            return True
-            
-        # For non-ZWJ emojis, check if it's a single emoji
-        base_char = normalized[0]
-        
-        # Check if it's only one emoji character
-        if len(normalized) > 1 and not any(c == '\ufe0f' for c in normalized[1:]):
-            return False
-            
-        return (
-            0x1F300 <= ord(base_char) <= 0x1F9FF or  # Emoji range
-            0x2600 <= ord(base_char) <= 0x26FF or    # Misc symbols
-            0x2700 <= ord(base_char) <= 0x27BF or    # Dingbats
-            0x2B00 <= ord(base_char) <= 0x2BFF       # Misc symbols and arrows (includes ⬛)
-        )
+        # Accept any non-ASCII character
+        return True, ""
             
     except Exception as e:
-        logger.error(f"Error validating emoji: {str(e)}")
-        return False
+        return False, f"Error validating emoji: {str(e)}"
 
 def is_valid_hex_color(color: str) -> bool:
     """Validate if the string is a valid hex color code."""
@@ -70,39 +44,37 @@ def validate_row(row: Dict[str, str], row_number: int) -> Optional[Dict[str, str
     Returns the validated row if valid, None if invalid.
     """
     try:
-        emoji = row['Emoji'].strip()
-        ascii_code = row['ASCII Code'].strip()
-        hex_color = row['Hex Color'].strip()
-
+        # Check if all required fields are present
+        for field in Config.EMOJI_CSV_HEADERS:
+            if field not in row:
+                logger.warning(f"Missing field '{field}' in row {row_number}")
+                return None
+                
         # Validate emoji
-        if not is_valid_emoji(emoji):
-            logger.warning(f"Invalid emoji in row {row_number}: {emoji}")
+        is_valid, error_msg = is_valid_emoji(row['Emoji'])
+        if not is_valid:
+            logger.warning(f"Invalid emoji in row {row_number}: {row['Emoji']} - {error_msg}")
             return None
-
-        # Validate ASCII code is a number
+            
+        # Validate ASCII code
         try:
-            int(ascii_code)
+            ascii_code = int(row['ASCII Code'])
+            if ascii_code < 0:
+                logger.warning(f"Invalid ASCII code in row {row_number}: negative value")
+                return None
         except ValueError:
-            logger.warning(f"Invalid ASCII code in row {row_number}: {ascii_code}")
+            logger.warning(f"Invalid ASCII code in row {row_number}: not a number")
             return None
-
+            
         # Validate hex color
-        if not is_valid_hex_color(hex_color):
-            logger.warning(f"Invalid hex color in row {row_number}: {hex_color}")
+        if not is_valid_hex_color(row['Hex Color']):
+            logger.warning(f"Invalid hex color in row {row_number}: {row['Hex Color']}")
             return None
-
-        # Return validated row with original column names
-        return {
-            'Emoji': emoji,
-            'ASCII Code': ascii_code,
-            'Hex Color': hex_color
-        }
-
-    except KeyError as e:
-        logger.error(f"Missing required column in row {row_number}: {str(e)}")
-        return None
+            
+        return row
+        
     except Exception as e:
-        logger.error(f"Unexpected error in row {row_number}: {str(e)} - {row}")
+        logger.error(f"Error validating row {row_number}: {str(e)}")
         return None
 
 def parse_emoji_csv() -> List[Dict[str, str]]:

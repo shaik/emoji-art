@@ -43,7 +43,17 @@
                     <div id="errorMessage" class="error-message"></div>
 
                     <div class="preview-section">
-                        <div id="imagePreview" class="image-preview"></div>
+                        <div class="image-preview-container">
+                            <div id="imagePreview" class="image-preview"></div>
+                            <div id="selectionOverlay" class="selection-overlay" style="display: none;">
+                                <div class="selection-box">
+                                    <div class="resize-handle top-left"></div>
+                                    <div class="resize-handle top-right"></div>
+                                    <div class="resize-handle bottom-left"></div>
+                                    <div class="resize-handle bottom-right"></div>
+                                </div>
+                            </div>
+                        </div>
                         <canvas id="previewCanvas" class="preview-canvas" style="display: none;"></canvas>
                     </div>
                 </form>

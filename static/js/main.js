@@ -10,6 +10,13 @@ function debugLog(...args) {
     }
 }
 
+// Configuration
+const CONFIG = {
+    UPDATE_DELAY: 500, // ms to wait after selection changes before updating
+    MAX_CANVAS_SIZE: 800, // maximum canvas dimension
+    MIN_SELECTION_SIZE: 10 // minimum selection dimension
+};
+
 // DOM Elements
 const fileInput = document.getElementById('fileInput');
 const dragDropArea = document.getElementById('dragDropArea');
@@ -21,6 +28,8 @@ const uploadForm = document.getElementById('uploadForm');
 const increaseFontBtn = document.getElementById('increaseFontSize');
 const decreaseFontBtn = document.getElementById('decreaseFontSize');
 const fontSizeDisplay = document.getElementById('fontSizeDisplay');
+const selectionBox = document.querySelector('.selection-box');
+const selectionOverlay = document.getElementById('selectionOverlay');
 
 // Canvas context
 const previewCtx = previewCanvas?.getContext('2d', { willReadFrequently: true });
@@ -31,6 +40,11 @@ let currentGridSize = parseInt(gridSizeSelect?.value || '32');
 let emojiDatabase = [];
 let baseFontSize = 0;
 let currentFontSizePercent = 100;
+let selection = { x: 0, y: 0, width: 0, height: 0 };
+let isDragging = false;
+let isResizing = false;
+let dragStart = { x: 0, y: 0 };
+let currentHandle = null;
 
 // Load emoji database
 async function loadEmojiDatabase() {
@@ -81,6 +95,167 @@ async function loadEmojiDatabase() {
     }
 }
 
+// Selection Functions
+function initializeSelection() {
+    if (!currentImage || !selectionBox || !selectionOverlay) return;
+    
+    const img = imagePreview.querySelector('img');
+    if (!img) return;
+
+    // Wait for image to be fully loaded
+    if (!img.complete) {
+        img.onload = () => initializeSelection();
+        return;
+    }
+
+    const rect = img.getBoundingClientRect();
+    
+    // Set initial selection to full image
+    selection = {
+        x: 0,
+        y: 0,
+        width: rect.width,
+        height: rect.height
+    };
+
+    // Show selection overlay and update its position
+    selectionOverlay.style.display = 'block';
+    selectionOverlay.style.width = `${rect.width}px`;
+    selectionOverlay.style.height = `${rect.height}px`;
+    updateSelectionBox();
+}
+
+function updateSelectionBox() {
+    if (!selectionBox) return;
+    
+    selectionBox.style.left = `${selection.x}px`;
+    selectionBox.style.top = `${selection.y}px`;
+    selectionBox.style.width = `${selection.width}px`;
+    selectionBox.style.height = `${selection.height}px`;
+}
+
+function handleSelectionStart(e) {
+    if (!selectionBox) return;
+
+    const target = e.target;
+    const rect = selectionBox.getBoundingClientRect();
+    
+    if (target.classList.contains('resize-handle')) {
+        isResizing = true;
+        currentHandle = target.classList[1]; // get handle position (e.g., 'top-left')
+    } else if (target === selectionBox || target.parentElement === selectionBox) {
+        isDragging = true;
+    } else {
+        return;
+    }
+
+    dragStart = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+    };
+
+    e.preventDefault();
+}
+
+function handleSelectionMove(e) {
+    if (!isDragging && !isResizing) return;
+
+    const img = imagePreview.querySelector('img');
+    if (!img) return;
+
+    const rect = img.getBoundingClientRect();
+    const maxX = rect.width;
+    const maxY = rect.height;
+
+    if (isResizing) {
+        const newX = e.clientX - rect.left;
+        const newY = e.clientY - rect.top;
+
+        if (currentHandle.includes('left')) {
+            const newWidth = selection.x + selection.width - newX;
+            if (newWidth > CONFIG.MIN_SELECTION_SIZE) {
+                selection.width = newWidth;
+                selection.x = Math.max(0, Math.min(newX, selection.x + selection.width - CONFIG.MIN_SELECTION_SIZE));
+            }
+        }
+        if (currentHandle.includes('right')) {
+            selection.width = Math.max(CONFIG.MIN_SELECTION_SIZE, Math.min(newX - selection.x, maxX - selection.x));
+        }
+        if (currentHandle.includes('top')) {
+            const newHeight = selection.y + selection.height - newY;
+            if (newHeight > CONFIG.MIN_SELECTION_SIZE) {
+                selection.height = newHeight;
+                selection.y = Math.max(0, Math.min(newY, selection.y + selection.height - CONFIG.MIN_SELECTION_SIZE));
+            }
+        }
+        if (currentHandle.includes('bottom')) {
+            selection.height = Math.max(CONFIG.MIN_SELECTION_SIZE, Math.min(newY - selection.y, maxY - selection.y));
+        }
+    } else if (isDragging) {
+        selection.x = Math.max(0, Math.min(e.clientX - dragStart.x - rect.left, maxX - selection.width));
+        selection.y = Math.max(0, Math.min(e.clientY - dragStart.y - rect.top, maxY - selection.height));
+    }
+
+    updateSelectionBox();
+    
+    // Debounce the processing to avoid too frequent updates
+    clearTimeout(window.selectionTimeout);
+    window.selectionTimeout = setTimeout(() => {
+        requestAnimationFrame(updateEmojiArt);
+    }, CONFIG.UPDATE_DELAY);
+}
+
+function handleSelectionEnd() {
+    isDragging = false;
+    isResizing = false;
+    currentHandle = null;
+}
+
+function updateEmojiArt() {
+    if (!currentImage || !previewCanvas || !previewCtx) return;
+
+    const img = imagePreview.querySelector('img');
+    if (!img) return;
+
+    // Calculate scale between displayed image and original image
+    const scale = img.naturalWidth / img.offsetWidth;
+    
+    // Set canvas dimensions based on selection
+    const dimensions = calculateDimensions(currentImage);
+    previewCanvas.width = dimensions.canvasWidth;
+    previewCanvas.height = dimensions.canvasHeight;
+
+    // Create a temporary canvas for the selected portion
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCanvas.width = selection.width * scale;
+    tempCanvas.height = selection.height * scale;
+
+    // Draw only the selected portion
+    tempCtx.drawImage(
+        img,
+        selection.x * scale,
+        selection.y * scale,
+        selection.width * scale,
+        selection.height * scale,
+        0,
+        0,
+        tempCanvas.width,
+        tempCanvas.height
+    );
+
+    // Draw the selected portion to the preview canvas
+    previewCtx.drawImage(
+        tempCanvas,
+        0,
+        0,
+        previewCanvas.width,
+        previewCanvas.height
+    );
+
+    renderEmojiGrid();
+}
+
 // Event Listeners
 function initializeEventListeners() {
     if (fileInput) {
@@ -96,7 +271,7 @@ function initializeEventListeners() {
     if (gridSizeSelect) {
         gridSizeSelect.addEventListener('change', () => {
             if (currentImage) {
-                processImage(currentImage);
+                updateEmojiArt();
             }
         });
     }
@@ -111,6 +286,12 @@ function initializeEventListeners() {
         decreaseFontBtn.addEventListener('click', () => {
             adjustFontSize(-10); // Decrease by 10%
         });
+    }
+
+    if (selectionBox) {
+        selectionBox.addEventListener('mousedown', handleSelectionStart);
+        document.addEventListener('mousemove', handleSelectionMove);
+        document.addEventListener('mouseup', handleSelectionEnd);
     }
 }
 
@@ -145,44 +326,54 @@ function updateEmojiArtFontSize() {
     }
 }
 
-if (typeof window !== 'undefined') {
-    initializeEventListeners();
-    loadEmojiDatabase();
-    document.documentElement.style.setProperty('--grid-size', currentGridSize);
-}
-
 // File handling functions
 function handleFileSelect(event) {
     const file = event.target.files[0];
     if (file) {
-        processFile(file);
+        if (!file.type.startsWith('image/')) {
+            showError('Please upload an image file');
+            return;
+        }
+        processImage(file);
     }
 }
 
 function handleDrop(event) {
     event.preventDefault();
+    dragDropArea.classList.remove('dragover');
+    
     const file = event.dataTransfer.files[0];
     if (file) {
-        processFile(file);
+        if (!file.type.startsWith('image/')) {
+            showError('Please upload an image file');
+            return;
+        }
+        processImage(file);
     }
 }
 
 function handleDragOver(event) {
     event.preventDefault();
+    dragDropArea.classList.add('dragover');
 }
 
 // Image processing functions
 function processFile(file) {
-    if (!file || !file.type.startsWith('image/')) {
-        showError('Please upload a valid image file');
-        return;
-    }
+    if (!file || !(file instanceof Blob)) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = function(e) {
         const img = new Image();
-        img.onload = () => {
-            processImage(img);
+        img.onload = function() {
+            // Update preview
+            imagePreview.innerHTML = `<img src="${e.target.result}" alt="Uploaded image">`;
+            currentImage = img;
+
+            // Initialize selection after image is loaded
+            setTimeout(() => {
+                initializeSelection();
+                updateEmojiArt();
+            }, 100);
         };
         img.src = e.target.result;
         
@@ -196,41 +387,48 @@ function processFile(file) {
     reader.readAsDataURL(file);
 }
 
-function processImage(img) {
-    currentImage = img;
-    
-    // Set canvas dimensions maintaining aspect ratio
-    const maxWidth = 800;
-    const maxHeight = 800;
-    let width = img.width;
-    let height = img.height;
-    
-    if (width > maxWidth || height > maxHeight) {
-        const ratio = Math.min(maxWidth / width, maxHeight / height);
-        width = width * ratio;
-        height = height * ratio;
-    }
-    
-    previewCanvas.width = width;
-    previewCanvas.height = height;
-    
-    // Draw image on preview canvas
-    previewCtx.drawImage(img, 0, 0, width, height);
-    
-    // Render emoji grid
-    renderEmojiGrid();
+function processImage(file) {
+    if (!file || !(file instanceof Blob)) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            // Update preview
+            imagePreview.innerHTML = `<img src="${e.target.result}" alt="Uploaded image">`;
+            currentImage = img;
+
+            // Initialize selection after image is loaded
+            setTimeout(() => {
+                initializeSelection();
+                updateEmojiArt();
+            }, 100);
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
 }
 
 function calculateDimensions(img) {
-    const gridWidth = parseInt(gridSizeSelect.value);
-    const aspectRatio = img.width / img.height;
-    const gridHeight = Math.round(gridWidth / aspectRatio);
-
+    const gridWidth = parseInt(gridSizeSelect?.value || '32');
+    const aspectRatio = img.height / img.width;
+    const gridHeight = Math.round(gridWidth * aspectRatio);
+    
+    // Calculate canvas dimensions
+    let canvasWidth = img.width;
+    let canvasHeight = img.height;
+    
+    if (canvasWidth > CONFIG.MAX_CANVAS_SIZE || canvasHeight > CONFIG.MAX_CANVAS_SIZE) {
+        const ratio = Math.min(CONFIG.MAX_CANVAS_SIZE / canvasWidth, CONFIG.MAX_CANVAS_SIZE / canvasHeight);
+        canvasWidth = canvasWidth * ratio;
+        canvasHeight = canvasHeight * ratio;
+    }
+    
     return {
         width: gridWidth,
         height: gridHeight,
-        canvasWidth: previewCanvas.width,
-        canvasHeight: previewCanvas.height
+        canvasWidth,
+        canvasHeight
     };
 }
 
@@ -393,4 +591,10 @@ if (typeof module !== 'undefined' && module.exports) {
         initDebugMode,
         EmojiArt
     };
+}
+
+if (typeof window !== 'undefined') {
+    initializeEventListeners();
+    loadEmojiDatabase();
+    document.documentElement.style.setProperty('--grid-size', currentGridSize);
 }

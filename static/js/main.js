@@ -293,36 +293,19 @@ function updateEmojiArt() {
     const img = imagePreview.querySelector('img');
     if (!img) return;
 
-    // Calculate scale between displayed image and original image
-    const scale = img.naturalWidth / img.offsetWidth;
-    
-    // Set canvas dimensions based on selection
+    // Calculate dimensions
     const dimensions = calculateDimensions(currentImage);
+    
+    // Set canvas dimensions to match the processed image size
     previewCanvas.width = dimensions.canvasWidth;
     previewCanvas.height = dimensions.canvasHeight;
 
-    // Create a temporary canvas for the selected portion
-    const tempCanvas = document.createElement('canvas');
-    const tempCtx = tempCanvas.getContext('2d');
-    tempCanvas.width = selection.width * scale;
-    tempCanvas.height = selection.height * scale;
+    // Clear the canvas
+    previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
 
-    // Draw only the selected portion
-    tempCtx.drawImage(
-        img,
-        selection.x * scale,
-        selection.y * scale,
-        selection.width * scale,
-        selection.height * scale,
-        0,
-        0,
-        tempCanvas.width,
-        tempCanvas.height
-    );
-
-    // Draw the selected portion to the preview canvas
+    // Draw the image at the calculated dimensions
     previewCtx.drawImage(
-        tempCanvas,
+        currentImage,
         0,
         0,
         previewCanvas.width,
@@ -330,14 +313,16 @@ function updateEmojiArt() {
     );
 
     // Process the grid
-    const gridData = processGrid(tempCanvas, dimensions);
+    const gridData = processGrid(previewCanvas, dimensions);
     renderEmojiGrid(gridData);
 }
 
 function processGrid(canvas, dimensions) {
     const ctx = canvas.getContext('2d');
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
+    
+    // Calculate cell dimensions
+    const cellWidth = Math.floor(canvas.width / dimensions.width);
+    const cellHeight = Math.floor(canvas.height / dimensions.height);
     
     const grid = {
         width: dimensions.width,
@@ -345,10 +330,15 @@ function processGrid(canvas, dimensions) {
         data: []
     };
     
+    // Process each cell
     for (let y = 0; y < dimensions.height; y++) {
         const row = [];
         for (let x = 0; x < dimensions.width; x++) {
-            const color = getAverageColor(x * canvas.width / dimensions.width, y * canvas.height / dimensions.height, canvas.width / dimensions.width, canvas.height / dimensions.height);
+            const startX = x * cellWidth;
+            const startY = y * cellHeight;
+            
+            // Get average color for this cell
+            const color = getAverageColor(startX, startY, cellWidth, cellHeight);
             const emoji = findClosestEmoji(color);
             row.push(emoji);
         }
@@ -358,25 +348,56 @@ function processGrid(canvas, dimensions) {
     return grid;
 }
 
+function calculateDimensions(img) {
+    const gridSize = parseInt(gridSizeSelect?.value || '32');
+    const aspectRatio = img.height / img.width;
+    
+    // Calculate grid dimensions maintaining aspect ratio
+    let gridWidth = gridSize;
+    let gridHeight = Math.round(gridSize * aspectRatio);
+    
+    // Calculate canvas dimensions
+    let canvasWidth = Math.min(img.width, CONFIG.MAX_CANVAS_SIZE);
+    let canvasHeight = Math.round(canvasWidth * aspectRatio);
+    
+    // Adjust if height exceeds max
+    if (canvasHeight > CONFIG.MAX_CANVAS_SIZE) {
+        canvasHeight = CONFIG.MAX_CANVAS_SIZE;
+        canvasWidth = Math.round(canvasHeight / aspectRatio);
+    }
+    
+    return {
+        width: gridWidth,
+        height: gridHeight,
+        canvasWidth,
+        canvasHeight
+    };
+}
+
 function renderEmojiGrid(grid) {
     const emojiArtOutput = document.getElementById('emojiArtOutput');
     if (!emojiArtOutput) return;
 
-    // Set the data-grid-size attribute for responsive sizing
-    emojiArtOutput.setAttribute('data-grid-width', grid.width);
-    emojiArtOutput.setAttribute('data-grid-height', grid.height);
-
-    // Set grid template columns
-    emojiArtOutput.style.gridTemplateColumns = `repeat(${grid.width}, 1fr)`;
+    // Clear any existing content
+    emojiArtOutput.innerHTML = '';
     
-    let emojiGrid = '';
+    // Set grid dimensions
+    emojiArtOutput.style.display = 'grid';
+    emojiArtOutput.style.gridTemplateColumns = `repeat(${grid.width}, 1fr)`;
+    emojiArtOutput.style.gap = '0';
+    emojiArtOutput.style.width = '100%';
+    emojiArtOutput.style.maxWidth = '100%';
+    
+    // Create and append emoji elements
     for (let y = 0; y < grid.height; y++) {
         for (let x = 0; x < grid.width; x++) {
-            emojiGrid += `<span>${grid.data[y][x]}</span>`;
+            const span = document.createElement('span');
+            span.textContent = grid.data[y][x];
+            span.style.display = 'inline-block';
+            span.style.lineHeight = '1';
+            emojiArtOutput.appendChild(span);
         }
     }
-
-    emojiArtOutput.innerHTML = emojiGrid;
     
     // Adjust container width based on grid size
     const container = document.querySelector('.emoji-art-container');
@@ -416,47 +437,34 @@ function processImage(file) {
     reader.readAsDataURL(file);
 }
 
-function calculateDimensions(img) {
-    const gridWidth = parseInt(gridSizeSelect?.value || '32');
-    const aspectRatio = img.height / img.width;
-    const gridHeight = Math.round(gridWidth * aspectRatio);
-    
-    // Calculate canvas dimensions
-    let canvasWidth = img.width;
-    let canvasHeight = img.height;
-    
-    if (canvasWidth > CONFIG.MAX_CANVAS_SIZE || canvasHeight > CONFIG.MAX_CANVAS_SIZE) {
-        const ratio = Math.min(CONFIG.MAX_CANVAS_SIZE / canvasWidth, CONFIG.MAX_CANVAS_SIZE / canvasHeight);
-        canvasWidth = canvasWidth * ratio;
-        canvasHeight = canvasHeight * ratio;
-    }
-    
-    return {
-        width: gridWidth,
-        height: gridHeight,
-        canvasWidth,
-        canvasHeight
-    };
-}
-
 function getAverageColor(x, y, width, height) {
-    const imageData = previewCtx.getImageData(x, y, width, height);
-    const data = imageData.data;
-    
-    let r = 0, g = 0, b = 0;
-    const pixels = data.length / 4;
-    
-    for (let i = 0; i < data.length; i += 4) {
-        r += data[i];
-        g += data[i + 1];
-        b += data[i + 2];
+    try {
+        const imageData = previewCtx.getImageData(
+            Math.floor(x),
+            Math.floor(y),
+            Math.min(Math.ceil(width), previewCanvas.width - Math.floor(x)),
+            Math.min(Math.ceil(height), previewCanvas.height - Math.floor(y))
+        );
+        const data = imageData.data;
+        
+        let r = 0, g = 0, b = 0;
+        const pixels = data.length / 4;
+        
+        for (let i = 0; i < data.length; i += 4) {
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+        }
+        
+        return {
+            r: Math.round(r / pixels),
+            g: Math.round(g / pixels),
+            b: Math.round(b / pixels)
+        };
+    } catch (error) {
+        console.error('Error getting average color:', error);
+        return { r: 255, g: 255, b: 255 }; // Default to white on error
     }
-    
-    return {
-        r: Math.round(r / pixels),
-        g: Math.round(g / pixels),
-        b: Math.round(b / pixels)
-    };
 }
 
 function showError(message) {

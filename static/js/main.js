@@ -582,7 +582,7 @@ function handleDragOver(event) {
 async function loadEmojiDatabase() {
     try {
         debugLog('Loading emoji database...');
-        const response = await fetch('/data/emoji_data.csv');
+        const response = await fetch('/static/data/emoji_data.csv');
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);

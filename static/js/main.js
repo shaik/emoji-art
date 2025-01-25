@@ -203,32 +203,74 @@ function initializeSelection() {
 
 function updateSelectionBox() {
     if (!selectionBox) return;
-    
+
     selectionBox.style.left = `${selection.x}px`;
     selectionBox.style.top = `${selection.y}px`;
     selectionBox.style.width = `${selection.width}px`;
     selectionBox.style.height = `${selection.height}px`;
+
+    // Update handle positions
+    const handles = [
+        { class: 'top-left', x: -10, y: -10 },
+        { class: 'top-right', x: selection.width - 10, y: -10 },
+        { class: 'bottom-left', x: -10, y: selection.height - 10 },
+        { class: 'bottom-right', x: selection.width - 10, y: selection.height - 10 }
+    ];
+
+    // Clear existing handles
+    const existingHandles = selectionBox.querySelectorAll('.resize-handle');
+    existingHandles.forEach(handle => handle.remove());
+
+    // Create new handles
+    handles.forEach(handle => {
+        const div = document.createElement('div');
+        div.className = `resize-handle ${handle.class}`;
+        div.style.left = `${handle.x}px`;
+        div.style.top = `${handle.y}px`;
+        div.style.width = '20px';
+        div.style.height = '20px';
+        div.style.position = 'absolute';
+        div.style.backgroundColor = 'white';
+        div.style.border = '2px solid #007bff';
+        div.style.borderRadius = '50%';
+        div.style.cursor = 'pointer';
+        div.style.zIndex = '1000';
+        div.style.touchAction = 'none';
+        selectionBox.appendChild(div);
+    });
 }
 
 function handleSelectionStart(e) {
-    if (!selectionBox) return;
+    const img = imagePreview.querySelector('img');
+    if (!img) return;
 
-    const target = e.target;
-    const rect = selectionBox.getBoundingClientRect();
-    
-    if (target.classList.contains('resize-handle')) {
-        isResizing = true;
-        currentHandle = target.classList[1]; // get handle position (e.g., 'top-left')
-    } else if (target === selectionBox || target.parentElement === selectionBox) {
-        isDragging = true;
-    } else {
-        return;
+    const rect = img.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    // Check if clicking on a handle
+    const handleSize = 20;
+    const handles = [
+        { name: 'top-left', x: selection.x - handleSize/2, y: selection.y - handleSize/2 },
+        { name: 'top-right', x: selection.x + selection.width - handleSize/2, y: selection.y - handleSize/2 },
+        { name: 'bottom-left', x: selection.x - handleSize/2, y: selection.y + selection.height - handleSize/2 },
+        { name: 'bottom-right', x: selection.x + selection.width - handleSize/2, y: selection.y + selection.height - handleSize/2 }
+    ];
+
+    for (const handle of handles) {
+        if (Math.abs(x - handle.x) < handleSize && Math.abs(y - handle.y) < handleSize) {
+            isResizing = true;
+            currentHandle = handle.name;
+            break;
+        }
     }
 
-    dragStart = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-    };
+    if (!isResizing) {
+        isDragging = true;
+        dragStart = { x: x - selection.x, y: y - selection.y };
+    }
 
     e.preventDefault();
 }
@@ -240,12 +282,14 @@ function handleSelectionMove(e) {
     if (!img) return;
 
     const rect = img.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     const maxX = rect.width;
     const maxY = rect.height;
 
     if (isResizing) {
-        const newX = e.clientX - rect.left;
-        const newY = e.clientY - rect.top;
+        const newX = clientX - rect.left;
+        const newY = clientY - rect.top;
 
         if (currentHandle.includes('left')) {
             const newWidth = selection.x + selection.width - newX;
@@ -268,8 +312,8 @@ function handleSelectionMove(e) {
             selection.height = Math.max(CONFIG.MIN_SELECTION_SIZE, Math.min(newY - selection.y, maxY - selection.y));
         }
     } else if (isDragging) {
-        selection.x = Math.max(0, Math.min(e.clientX - dragStart.x - rect.left, maxX - selection.width));
-        selection.y = Math.max(0, Math.min(e.clientY - dragStart.y - rect.top, maxY - selection.height));
+        selection.x = Math.max(0, Math.min(clientX - dragStart.x - rect.left, maxX - selection.width));
+        selection.y = Math.max(0, Math.min(clientY - dragStart.y - rect.top, maxY - selection.height));
     }
 
     updateSelectionBox();
@@ -279,6 +323,8 @@ function handleSelectionMove(e) {
     window.selectionTimeout = setTimeout(() => {
         requestAnimationFrame(updateEmojiArt);
     }, CONFIG.UPDATE_DELAY);
+
+    e.preventDefault();
 }
 
 function handleSelectionEnd() {
@@ -557,7 +603,20 @@ function initializeEventListeners() {
         selectionBox.addEventListener('mousedown', handleSelectionStart);
         document.addEventListener('mousemove', handleSelectionMove);
         document.addEventListener('mouseup', handleSelectionEnd);
+        
+        // Touch events
+        selectionBox.addEventListener('touchstart', handleSelectionStart, { passive: false });
+        document.addEventListener('touchmove', handleSelectionMove, { passive: false });
+        document.addEventListener('touchend', handleSelectionEnd);
+        document.addEventListener('touchcancel', handleSelectionEnd);
     }
+    
+    // Prevent default touch behavior to avoid scrolling while dragging
+    document.addEventListener('touchmove', function(e) {
+        if (isDragging || isResizing) {
+            e.preventDefault();
+        }
+    }, { passive: false });
 }
 
 // File handling functions

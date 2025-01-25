@@ -293,19 +293,26 @@ function updateEmojiArt() {
     const img = imagePreview.querySelector('img');
     if (!img) return;
 
-    // Calculate dimensions
+    // Calculate scale between displayed image and original image
+    const scale = currentImage.naturalWidth / img.offsetWidth;
+    
+    // Calculate dimensions for the selected area
     const dimensions = calculateDimensions(currentImage);
     
-    // Set canvas dimensions to match the processed image size
-    previewCanvas.width = dimensions.canvasWidth;
-    previewCanvas.height = dimensions.canvasHeight;
+    // Set canvas dimensions based on selection
+    previewCanvas.width = selection.width * scale;
+    previewCanvas.height = selection.height * scale;
 
     // Clear the canvas
     previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
 
-    // Draw the image at the calculated dimensions
+    // Draw only the selected portion of the image
     previewCtx.drawImage(
         currentImage,
+        selection.x * scale,
+        selection.y * scale,
+        selection.width * scale,
+        selection.height * scale,
         0,
         0,
         previewCanvas.width,
@@ -350,20 +357,26 @@ function processGrid(canvas, dimensions) {
 
 function calculateDimensions(img) {
     const gridSize = parseInt(gridSizeSelect?.value || '32');
-    const aspectRatio = img.height / img.width;
+    
+    // Calculate scale between displayed image and original image
+    const scale = img.naturalWidth / imagePreview.querySelector('img').offsetWidth;
+    
+    // Get selection dimensions in original image coordinates
+    const selectionWidth = selection.width * scale;
+    const selectionHeight = selection.height * scale;
     
     // Calculate grid dimensions maintaining aspect ratio
     let gridWidth = gridSize;
-    let gridHeight = Math.round(gridSize * aspectRatio);
+    let gridHeight = Math.round(gridSize * (selectionHeight / selectionWidth));
     
     // Calculate canvas dimensions
-    let canvasWidth = Math.min(img.width, CONFIG.MAX_CANVAS_SIZE);
-    let canvasHeight = Math.round(canvasWidth * aspectRatio);
+    let canvasWidth = Math.min(selectionWidth, CONFIG.MAX_CANVAS_SIZE);
+    let canvasHeight = Math.round(canvasWidth * (selectionHeight / selectionWidth));
     
     // Adjust if height exceeds max
     if (canvasHeight > CONFIG.MAX_CANVAS_SIZE) {
         canvasHeight = CONFIG.MAX_CANVAS_SIZE;
-        canvasWidth = Math.round(canvasHeight / aspectRatio);
+        canvasWidth = Math.round(canvasHeight * (selectionWidth / selectionHeight));
     }
     
     return {

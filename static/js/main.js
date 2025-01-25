@@ -46,56 +46,132 @@ let isResizing = false;
 let dragStart = { x: 0, y: 0 };
 let currentHandle = null;
 
-// Load emoji database
-async function loadEmojiDatabase() {
-    try {
-        debugLog('Loading emoji database...');
-        const response = await fetch('/data/emoji_data.csv');
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const csvText = await response.text();
-        debugLog('Received emoji data:', csvText.substring(0, 100) + '...');
-        
-        // Parse CSV
-        const lines = csvText.split('\n').filter(line => line.trim());
-        // Skip header row if it exists
-        const startIndex = lines[0].includes('Emoji,ASCII Code,Hex Color') ? 1 : 0;
-        
-        emojiDatabase = lines.slice(startIndex).map(line => {
-            const [emoji, _, hexColor] = line.split(',');
-            // Convert hex color to RGB
-            const r = parseInt(hexColor.substring(1, 3), 16);
-            const g = parseInt(hexColor.substring(3, 5), 16);
-            const b = parseInt(hexColor.substring(5, 7), 16);
-            return {
-                emoji: emoji.trim(),
-                color: { r, g, b }
-            };
-        });
-        
-        debugLog(`Loaded ${emojiDatabase.length} emojis from database`);
-    } catch (error) {
-        console.error('Error loading emoji database:', error);
-        debugLog('Error loading emoji database, using fallback');
-        // Fallback to basic emoji set if loading fails
-        emojiDatabase = [
-            { emoji: '⬜', color: { r: 255, g: 255, b: 255 } }, // White
-            { emoji: '⬛', color: { r: 0, g: 0, b: 0 } },       // Black
-            { emoji: '🟨', color: { r: 255, g: 255, b: 0 } },   // Yellow
-            { emoji: '🟦', color: { r: 0, g: 0, b: 255 } },     // Blue
-            { emoji: '🟥', color: { r: 255, g: 0, b: 0 } },     // Red
-            { emoji: '🟩', color: { r: 0, g: 255, b: 0 } },     // Green
-            { emoji: '🟧', color: { r: 255, g: 165, b: 0 } },   // Orange
-            { emoji: '🟫', color: { r: 139, g: 69, b: 19 } },   // Brown
-            { emoji: '🟪', color: { r: 128, g: 0, b: 128 } },   // Purple
-        ];
-    }
+// Color matching optimization
+const colorCache = new Map();
+const labCache = new Map();  // Cache for RGB to LAB conversions
+const COLOR_BUCKETS = 32; // Number of buckets per channel
+
+function getColorKey(r, g, b) {
+    // More precise key than quantized version
+    return `${r},${g},${b}`;
 }
 
-// Selection Functions
+function getQuantizedKey(r, g, b) {
+    const qr = Math.floor(r / 256 * COLOR_BUCKETS);
+    const qg = Math.floor(g / 256 * COLOR_BUCKETS);
+    const qb = Math.floor(b / 256 * COLOR_BUCKETS);
+    return `${qr},${qg},${qb}`;
+}
+
+function rgbToLabCached(r, g, b) {
+    const key = getColorKey(r, g, b);
+    if (labCache.has(key)) {
+        return labCache.get(key);
+    }
+    
+    const lab = rgbToLab(r, g, b);
+    labCache.set(key, lab);
+    return lab;
+}
+
+function quantizeColor(r, g, b) {
+    const qr = Math.floor(r / 256 * COLOR_BUCKETS);
+    const qg = Math.floor(g / 256 * COLOR_BUCKETS);
+    const qb = Math.floor(b / 256 * COLOR_BUCKETS);
+    return `${qr},${qg},${qb}`;
+}
+
+// Initialize KD-tree with emoji database
+function initializeEmojiKDTree() {
+    if (emojiKDTree) return;
+    
+    // Convert emoji colors to LAB space using cached conversion
+    const emojiLabData = emojiDatabase.map(emoji => ({
+        emoji: emoji.emoji,
+        lab: rgbToLabCached(emoji.color.r, emoji.color.g, emoji.color.b)
+    }));
+    
+    // Create and build KD-tree
+    emojiKDTree = new ColorKDTree();
+    emojiKDTree.buildTree(emojiLabData);
+}
+
+function findClosestEmoji(color) {
+    if (!emojiDatabase.length) return '⬜';
+    
+    // Try exact cache first
+    const exactKey = getColorKey(color.r, color.g, color.b);
+    if (colorCache.has(exactKey)) {
+        return colorCache.get(exactKey);
+    }
+    
+    // Try quantized cache next
+    const quantizedKey = getQuantizedKey(color.r, color.g, color.b);
+    if (colorCache.has(quantizedKey)) {
+        return colorCache.get(quantizedKey);
+    }
+    
+    // Initialize KD-tree if needed
+    initializeEmojiKDTree();
+    
+    // Convert target color to LAB using cached conversion
+    const targetLab = rgbToLabCached(color.r, color.g, color.b);
+    
+    // Find nearest emoji using KD-tree
+    const closestEmoji = emojiKDTree.findNearest(targetLab);
+    
+    // Cache the result in both exact and quantized caches
+    colorCache.set(exactKey, closestEmoji);
+    colorCache.set(quantizedKey, closestEmoji);
+    
+    return closestEmoji || '⬜';
+}
+
+function clearColorCache() {
+    colorCache.clear();
+    labCache.clear();
+    emojiKDTree = null;
+}
+
+function rgbToLab(r, g, b) {
+    // Convert RGB to XYZ
+    const rgb = [r / 255, g / 255, b / 255].map(v => 
+        v > 0.04045 ? Math.pow((v + 0.055) / 1.055, 2.4) : v / 12.92
+    );
+    
+    // Scale for XYZ conversion
+    const [rx, gx, bx] = rgb.map(v => v * 100);
+    
+    // Convert to XYZ
+    const x = rx * 0.4124 + gx * 0.3576 + bx * 0.1805;
+    const y = rx * 0.2126 + gx * 0.7152 + bx * 0.0722;
+    const z = rx * 0.0193 + gx * 0.1192 + bx * 0.9505;
+    
+    // XYZ to Lab
+    const eps = 0.008856;
+    const kappa = 903.3;
+    const ref = [95.047, 100.000, 108.883]; // D65 illuminant
+    
+    const f = [x, y, z].map((v, i) => {
+        const vr = v / ref[i];
+        return vr > eps ? Math.pow(vr, 1/3) : (kappa * vr + 16) / 116;
+    });
+    
+    return [
+        (116 * f[1]) - 16,     // L
+        500 * (f[0] - f[1]),   // a
+        200 * (f[1] - f[2])    // b
+    ];
+}
+
+function labDistance(lab1, lab2) {
+    return Math.sqrt(
+        Math.pow(lab1[0] - lab2[0], 2) +
+        Math.pow(lab1[1] - lab2[1], 2) +
+        Math.pow(lab1[2] - lab2[2], 2)
+    );
+}
+
 function initializeSelection() {
     if (!currentImage || !selectionBox || !selectionOverlay) return;
     
@@ -253,138 +329,66 @@ function updateEmojiArt() {
         previewCanvas.height
     );
 
-    renderEmojiGrid();
+    // Process the grid
+    const gridData = processGrid(tempCanvas, dimensions);
+    renderEmojiGrid(gridData);
 }
 
-// Event Listeners
-function initializeEventListeners() {
-    if (fileInput) {
-        fileInput.addEventListener('change', handleFileSelect);
-    }
-
-    if (dragDropArea) {
-        dragDropArea.addEventListener('dragover', handleDragOver);
-        dragDropArea.addEventListener('drop', handleDrop);
-        dragDropArea.addEventListener('click', () => fileInput.click());
-    }
-
-    if (gridSizeSelect) {
-        gridSizeSelect.addEventListener('change', () => {
-            if (currentImage) {
-                updateEmojiArt();
-            }
-        });
-    }
-
-    if (increaseFontBtn) {
-        increaseFontBtn.addEventListener('click', () => {
-            adjustFontSize(10); // Increase by 10%
-        });
-    }
-
-    if (decreaseFontBtn) {
-        decreaseFontBtn.addEventListener('click', () => {
-            adjustFontSize(-10); // Decrease by 10%
-        });
-    }
-
-    if (selectionBox) {
-        selectionBox.addEventListener('mousedown', handleSelectionStart);
-        document.addEventListener('mousemove', handleSelectionMove);
-        document.addEventListener('mouseup', handleSelectionEnd);
-    }
-}
-
-function adjustFontSize(change) {
-    const emojiArt = document.getElementById('emojiArtOutput');
-    if (!emojiArt) return;
-
-    // Initialize base font size if not set
-    if (!baseFontSize) {
-        const computedStyle = window.getComputedStyle(emojiArt);
-        baseFontSize = parseFloat(computedStyle.fontSize);
-    }
-
-    // Update percentage
-    currentFontSizePercent = Math.max(50, Math.min(200, currentFontSizePercent + change));
+function processGrid(canvas, dimensions) {
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
     
-    // Update display
-    if (fontSizeDisplay) {
-        fontSizeDisplay.textContent = `${currentFontSizePercent}%`;
-    }
-
-    // Apply new font size
-    const newSize = (baseFontSize * currentFontSizePercent / 100);
-    emojiArt.style.fontSize = `${newSize}px`;
-}
-
-function updateEmojiArtFontSize() {
-    const emojiArt = document.getElementById('emojiArtOutput');
-    if (emojiArt) {
-        const baseSize = parseInt(window.getComputedStyle(emojiArt).fontSize);
-        emojiArt.style.fontSize = `${baseSize * currentFontSizePercent / 100}px`;
-    }
-}
-
-// File handling functions
-function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (file) {
-        if (!file.type.startsWith('image/')) {
-            showError('Please upload an image file');
-            return;
-        }
-        processImage(file);
-    }
-}
-
-function handleDrop(event) {
-    event.preventDefault();
-    dragDropArea.classList.remove('dragover');
-    
-    const file = event.dataTransfer.files[0];
-    if (file) {
-        if (!file.type.startsWith('image/')) {
-            showError('Please upload an image file');
-            return;
-        }
-        processImage(file);
-    }
-}
-
-function handleDragOver(event) {
-    event.preventDefault();
-    dragDropArea.classList.add('dragover');
-}
-
-// Image processing functions
-function processFile(file) {
-    if (!file || !(file instanceof Blob)) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-            // Update preview
-            imagePreview.innerHTML = `<img src="${e.target.result}" alt="Uploaded image">`;
-            currentImage = img;
-
-            // Initialize selection after image is loaded
-            setTimeout(() => {
-                initializeSelection();
-                updateEmojiArt();
-            }, 100);
-        };
-        img.src = e.target.result;
-        
-        // Show preview
-        imagePreview.innerHTML = '';
-        const preview = new Image();
-        preview.src = e.target.result;
-        preview.className = 'preview-image';
-        imagePreview.appendChild(preview);
+    const grid = {
+        width: dimensions.width,
+        height: dimensions.height,
+        data: []
     };
-    reader.readAsDataURL(file);
+    
+    for (let y = 0; y < dimensions.height; y++) {
+        const row = [];
+        for (let x = 0; x < dimensions.width; x++) {
+            const color = getAverageColor(x * canvas.width / dimensions.width, y * canvas.height / dimensions.height, canvas.width / dimensions.width, canvas.height / dimensions.height);
+            const emoji = findClosestEmoji(color);
+            row.push(emoji);
+        }
+        grid.data.push(row);
+    }
+    
+    return grid;
+}
+
+function renderEmojiGrid(grid) {
+    const emojiArtOutput = document.getElementById('emojiArtOutput');
+    if (!emojiArtOutput) return;
+
+    // Set the data-grid-size attribute for responsive sizing
+    emojiArtOutput.setAttribute('data-grid-width', grid.width);
+    emojiArtOutput.setAttribute('data-grid-height', grid.height);
+
+    // Set grid template columns
+    emojiArtOutput.style.gridTemplateColumns = `repeat(${grid.width}, 1fr)`;
+    
+    let emojiGrid = '';
+    for (let y = 0; y < grid.height; y++) {
+        for (let x = 0; x < grid.width; x++) {
+            emojiGrid += `<span>${grid.data[y][x]}</span>`;
+        }
+    }
+
+    emojiArtOutput.innerHTML = emojiGrid;
+    
+    // Adjust container width based on grid size
+    const container = document.querySelector('.emoji-art-container');
+    if (container) {
+        if (grid.width <= 32) {
+            container.style.maxWidth = '800px';
+        } else if (grid.width <= 64) {
+            container.style.maxWidth = '1000px';
+        } else {
+            container.style.maxWidth = '1200px';
+        }
+    }
 }
 
 function processImage(file) {
@@ -394,6 +398,9 @@ function processImage(file) {
     reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
+            // Clear previous state
+            clearColorCache();
+            
             // Update preview
             imagePreview.innerHTML = `<img src="${e.target.result}" alt="Uploaded image">`;
             currentImage = img;
@@ -462,82 +469,154 @@ function showError(message) {
     }
 }
 
-function findClosestEmoji(color) {
-    if (!emojiDatabase.length) return '⬜';
-    
-    let minDistance = Infinity;
-    let closestEmoji = null;
-    
-    for (const emoji of emojiDatabase) {
-        const emojiColor = emoji.color;
-        const distance = Math.sqrt(
-            Math.pow(color.r - emojiColor.r, 2) +
-            Math.pow(color.g - emojiColor.g, 2) +
-            Math.pow(color.b - emojiColor.b, 2)
-        );
-        
-        if (distance < minDistance) {
-            minDistance = distance;
-            closestEmoji = emoji.emoji;
-        }
+function adjustFontSize(change) {
+    const emojiArt = document.getElementById('emojiArtOutput');
+    if (!emojiArt) return;
+
+    // Initialize base font size if not set
+    if (!baseFontSize) {
+        const computedStyle = window.getComputedStyle(emojiArt);
+        baseFontSize = parseFloat(computedStyle.fontSize);
     }
+
+    // Update percentage
+    currentFontSizePercent = Math.max(50, Math.min(200, currentFontSizePercent + change));
     
-    return closestEmoji || '⬜';
+    // Update display
+    if (fontSizeDisplay) {
+        fontSizeDisplay.textContent = `${currentFontSizePercent}%`;
+    }
+
+    // Apply new font size
+    const newSize = (baseFontSize * currentFontSizePercent / 100);
+    emojiArt.style.fontSize = `${newSize}px`;
 }
 
-function renderEmojiGrid() {
-    const emojiArtOutput = document.getElementById('emojiArtOutput');
-    if (!emojiArtOutput || !previewCtx || !currentImage) return;
+function updateEmojiArtFontSize() {
+    const emojiArt = document.getElementById('emojiArtOutput');
+    if (emojiArt) {
+        const baseSize = parseInt(window.getComputedStyle(emojiArt).fontSize);
+        emojiArt.style.fontSize = `${baseSize * currentFontSizePercent / 100}px`;
+    }
+}
 
-    const dimensions = calculateDimensions(currentImage);
-    const gridWidth = dimensions.width;
-    const gridHeight = dimensions.height;
-    
-    const cellWidth = dimensions.canvasWidth / gridWidth;
-    const cellHeight = dimensions.canvasHeight / gridHeight;
+// Event Listeners
+function initializeEventListeners() {
+    if (fileInput) {
+        fileInput.addEventListener('change', handleFileSelect);
+    }
 
-    let emojiGrid = '';
-    
-    // Set the data-grid-size attribute for responsive sizing
-    emojiArtOutput.setAttribute('data-grid-width', gridWidth);
-    emojiArtOutput.setAttribute('data-grid-height', gridHeight);
+    if (dragDropArea) {
+        dragDropArea.addEventListener('dragover', handleDragOver);
+        dragDropArea.addEventListener('drop', handleDrop);
+        dragDropArea.addEventListener('click', () => fileInput.click());
+    }
 
-    // Set grid template columns
-    emojiArtOutput.style.gridTemplateColumns = `repeat(${gridWidth}, 1fr)`;
-    
-    for (let y = 0; y < gridHeight; y++) {
-        for (let x = 0; x < gridWidth; x++) {
-            const color = getAverageColor(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
-            const emoji = findClosestEmoji(color);
-            emojiGrid += `<span>${emoji}</span>`;
+    if (gridSizeSelect) {
+        gridSizeSelect.addEventListener('change', () => {
+            if (currentImage) {
+                updateEmojiArt();
+            }
+        });
+    }
+
+    if (increaseFontBtn) {
+        increaseFontBtn.addEventListener('click', () => {
+            adjustFontSize(10); // Increase by 10%
+        });
+    }
+
+    if (decreaseFontBtn) {
+        decreaseFontBtn.addEventListener('click', () => {
+            adjustFontSize(-10); // Decrease by 10%
+        });
+    }
+
+    if (selectionBox) {
+        selectionBox.addEventListener('mousedown', handleSelectionStart);
+        document.addEventListener('mousemove', handleSelectionMove);
+        document.addEventListener('mouseup', handleSelectionEnd);
+    }
+}
+
+// File handling functions
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (file) {
+        if (!file.type.startsWith('image/')) {
+            showError('Please upload an image file');
+            return;
         }
+        processImage(file);
     }
+}
 
-    emojiArtOutput.innerHTML = emojiGrid;
-    emojiArtOutput.style.fontSize = ''; // Reset font size to get proper base size
+function handleDrop(event) {
+    event.preventDefault();
+    dragDropArea.classList.remove('dragover');
     
-    // Reset base font size for new grid
-    baseFontSize = parseFloat(window.getComputedStyle(emojiArtOutput).fontSize);
-    
-    // Reapply current font size percentage
-    if (currentFontSizePercent !== 100) {
-        const newSize = (baseFontSize * currentFontSizePercent / 100);
-        emojiArtOutput.style.fontSize = `${newSize}px`;
-    }
-    
-    // Adjust container width based on grid size
-    const container = document.querySelector('.emoji-art-container');
-    if (container) {
-        if (gridWidth <= 32) {
-            container.style.maxWidth = '800px';
-        } else if (gridWidth <= 64) {
-            container.style.maxWidth = '1000px';
-        } else {
-            container.style.maxWidth = '1200px';
+    const file = event.dataTransfer.files[0];
+    if (file) {
+        if (!file.type.startsWith('image/')) {
+            showError('Please upload an image file');
+            return;
         }
+        processImage(file);
     }
+}
 
-    debugLog(`Grid rendered with dimensions: ${gridWidth}x${gridHeight}`);
+function handleDragOver(event) {
+    event.preventDefault();
+    dragDropArea.classList.add('dragover');
+}
+
+// Load emoji database
+async function loadEmojiDatabase() {
+    try {
+        debugLog('Loading emoji database...');
+        const response = await fetch('/data/emoji_data.csv');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const csvText = await response.text();
+        debugLog('Received emoji data:', csvText.substring(0, 100) + '...');
+        
+        // Parse CSV
+        const lines = csvText.split('\n').filter(line => line.trim());
+        // Skip header row if it exists
+        const startIndex = lines[0].includes('Emoji,ASCII Code,Hex Color') ? 1 : 0;
+        
+        emojiDatabase = lines.slice(startIndex).map(line => {
+            const [emoji, _, hexColor] = line.split(',');
+            // Convert hex color to RGB
+            const r = parseInt(hexColor.substring(1, 3), 16);
+            const g = parseInt(hexColor.substring(3, 5), 16);
+            const b = parseInt(hexColor.substring(5, 7), 16);
+            return {
+                emoji: emoji.trim(),
+                color: { r, g, b }
+            };
+        });
+        
+        debugLog(`Loaded ${emojiDatabase.length} emojis from database`);
+    } catch (error) {
+        console.error('Error loading emoji database:', error);
+        debugLog('Error loading emoji database, using fallback');
+        // Fallback to basic emoji set if loading fails
+        emojiDatabase = [
+            { emoji: '⬜', color: { r: 255, g: 255, b: 255 } }, // White
+            { emoji: '⬛', color: { r: 0, g: 0, b: 0 } },       // Black
+            { emoji: '🟨', color: { r: 255, g: 255, b: 0 } },   // Yellow
+            { emoji: '🟦', color: { r: 0, g: 0, b: 255 } },     // Blue
+            { emoji: '🟥', color: { r: 255, g: 0, b: 0 } },     // Red
+            { emoji: '🟩', color: { r: 0, g: 255, b: 0 } },     // Green
+            { emoji: '🟧', color: { r: 255, g: 165, b: 0 } },   // Orange
+            { emoji: '🟫', color: { r: 139, g: 69, b: 19 } },   // Brown
+            { emoji: '🟪', color: { r: 128, g: 0, b: 128 } },   // Purple
+        ];
+    }
 }
 
 // Initialize debug mode from localStorage or URL parameter
@@ -594,7 +673,11 @@ if (typeof module !== 'undefined' && module.exports) {
 }
 
 if (typeof window !== 'undefined') {
-    initializeEventListeners();
-    loadEmojiDatabase();
-    document.documentElement.style.setProperty('--grid-size', currentGridSize);
+    function initializeApp() {
+        initializeEventListeners();
+        loadEmojiDatabase();
+        document.documentElement.style.setProperty('--grid-size', currentGridSize);
+    }
+
+    document.addEventListener('DOMContentLoaded', initializeApp);
 }

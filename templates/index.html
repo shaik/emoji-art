@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Emoji Art Creator</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -61,6 +62,14 @@
 
             <section class="emoji-art-section">
                 <h2>Emoji Art</h2>
+                <div class="download-controls">
+                    <button id="downloadBtn" class="download-btn" disabled>
+                        Download Emoji Art
+                        <select id="downloadFormat" class="download-format">
+                            <option value="text">Text</option>
+                        </select>
+                    </button>
+                </div>
                 <div class="font-size-controls">
                     <button id="decreaseFontSize" class="font-size-btn" title="Decrease font size">
                         <span>-</span>

@@ -17,11 +17,21 @@ const CONFIG = {
     MIN_SELECTION_SIZE: 10 // minimum selection dimension
 };
 
+// Global variables
+let currentImage = null;
+let currentEmojiGrid = null;
+let previewCanvas = null;
+let previewCtx = null;
+let selection = { x: 0, y: 0, width: 0, height: 0 };
+let isDragging = false;
+let isResizing = false;
+let currentHandle = null;
+let dragStart = { x: 0, y: 0 };
+
 // DOM Elements
 const fileInput = document.getElementById('fileInput');
 const dragDropArea = document.getElementById('dragDropArea');
 const imagePreview = document.getElementById('imagePreview');
-const previewCanvas = document.getElementById('previewCanvas');
 const gridSizeSelect = document.getElementById('gridSize');
 const errorMessage = document.getElementById('errorMessage');
 const uploadForm = document.getElementById('uploadForm');
@@ -30,21 +40,15 @@ const decreaseFontBtn = document.getElementById('decreaseFontSize');
 const fontSizeDisplay = document.getElementById('fontSizeDisplay');
 const selectionBox = document.querySelector('.selection-box');
 const selectionOverlay = document.getElementById('selectionOverlay');
-
-// Canvas context
-const previewCtx = previewCanvas?.getContext('2d', { willReadFrequently: true });
+const emojiArtOutput = document.getElementById('emojiArtOutput');
+const downloadBtn = document.getElementById('downloadBtn');
+const downloadFormat = document.getElementById('downloadFormat');
 
 // State
-let currentImage = null;
 let currentGridSize = parseInt(gridSizeSelect?.value || '32');
 let emojiDatabase = [];
 let baseFontSize = 0;
 let currentFontSizePercent = 100;
-let selection = { x: 0, y: 0, width: 0, height: 0 };
-let isDragging = false;
-let isResizing = false;
-let dragStart = { x: 0, y: 0 };
-let currentHandle = null;
 
 // Color matching optimization
 const colorCache = new Map();
@@ -434,66 +438,21 @@ function calculateDimensions(img) {
 }
 
 function renderEmojiGrid(grid) {
-    const emojiArtOutput = document.getElementById('emojiArtOutput');
-    if (!emojiArtOutput) return;
+    if (!grid || !grid.data) return;
 
-    // Clear any existing content
-    emojiArtOutput.innerHTML = '';
-    
-    // Set grid dimensions
-    emojiArtOutput.style.display = 'grid';
-    emojiArtOutput.style.gridTemplateColumns = `repeat(${grid.width}, 1fr)`;
-    emojiArtOutput.style.gap = '0';
-    emojiArtOutput.style.width = '100%';
-    emojiArtOutput.style.maxWidth = '100%';
-    
-    // Create and append emoji elements
-    for (let y = 0; y < grid.height; y++) {
-        for (let x = 0; x < grid.width; x++) {
-            const span = document.createElement('span');
-            span.textContent = grid.data[y][x];
-            span.style.display = 'inline-block';
-            span.style.lineHeight = '1';
-            emojiArtOutput.appendChild(span);
-        }
+    let output = '';
+    for (let row of grid.data) {
+        output += row.join('') + '\n';
     }
+
+    emojiArtOutput.textContent = output;
     
-    // Adjust container width based on grid size
-    const container = document.querySelector('.emoji-art-container');
-    if (container) {
-        if (grid.width <= 32) {
-            container.style.maxWidth = '800px';
-        } else if (grid.width <= 64) {
-            container.style.maxWidth = '1000px';
-        } else {
-            container.style.maxWidth = '1200px';
-        }
-    }
-}
-
-function processImage(file) {
-    if (!file || !(file instanceof Blob)) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-            // Clear previous state
-            clearColorCache();
-            
-            // Update preview
-            imagePreview.innerHTML = `<img src="${e.target.result}" alt="Uploaded image">`;
-            currentImage = img;
-
-            // Initialize selection after image is loaded
-            setTimeout(() => {
-                initializeSelection();
-                updateEmojiArt();
-            }, 100);
-        };
-        img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
+    // Enable download button once we have emoji art
+    downloadBtn.disabled = false;
+    
+    debugLog('Rendered emoji grid:', { rows: grid.data.length, cols: grid.data[0].length });
+    
+    currentEmojiGrid = grid;
 }
 
 function getAverageColor(x, y, width, height) {
@@ -567,6 +526,40 @@ function updateEmojiArtFontSize() {
     }
 }
 
+// Download functions
+function downloadEmojiArt() {
+    try {
+        if (!currentEmojiGrid || !currentEmojiGrid.data) {
+            showError('No emoji art to download. Please generate emoji art first.');
+            return;
+        }
+
+        debugLog('Starting emoji art download');
+        
+        // Get the emoji art content
+        const content = currentEmojiGrid.data.map(row => row.join('')).join('\n');
+        
+        // Create blob and download link
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'emoji_art.txt';
+        
+        // Trigger download
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        debugLog(`Generated text file with ${currentEmojiGrid.data.length} rows and ${currentEmojiGrid.data[0].length} columns`);
+        console.log('[INFO] Text file downloaded: emoji_art.txt');
+    } catch (error) {
+        console.error('[ERROR] Failed to download emoji art:', error);
+        showError('Failed to download emoji art. Please try again.');
+    }
+}
+
 // Event Listeners
 function initializeEventListeners() {
     if (fileInput) {
@@ -617,6 +610,19 @@ function initializeEventListeners() {
             e.preventDefault();
         }
     }, { passive: false });
+    
+    // Download button event listener
+    downloadBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const format = downloadFormat.value;
+        console.log(`[INFO] User selected "Download as ${format}" option`);
+        downloadEmojiArt();
+    });
+    
+    // Prevent the dropdown from triggering the button click
+    downloadFormat.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
 }
 
 // File handling functions
@@ -648,6 +654,40 @@ function handleDrop(event) {
 function handleDragOver(event) {
     event.preventDefault();
     dragDropArea.classList.add('dragover');
+}
+
+function processImage(file) {
+    if (!file || !(file instanceof Blob)) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            // Clear previous state
+            clearColorCache();
+            
+            // Create and setup canvas
+            previewCanvas = document.createElement('canvas');
+            previewCanvas.width = img.width;
+            previewCanvas.height = img.height;
+            previewCtx = previewCanvas.getContext('2d');
+            
+            // Draw image to canvas
+            previewCtx.drawImage(img, 0, 0);
+            
+            // Update preview
+            imagePreview.innerHTML = `<img src="${e.target.result}" alt="Uploaded image">`;
+            currentImage = img;
+
+            // Initialize selection after image is loaded
+            setTimeout(() => {
+                initializeSelection();
+                updateEmojiArt();
+            }, 100);
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
 }
 
 // Load emoji database
@@ -754,9 +794,14 @@ if (typeof module !== 'undefined' && module.exports) {
 
 if (typeof window !== 'undefined') {
     function initializeApp() {
-        initializeEventListeners();
+        // Load emoji database
         loadEmojiDatabase();
-        document.documentElement.style.setProperty('--grid-size', currentGridSize);
+        
+        // Initialize event listeners
+        initializeEventListeners();
+        
+        // Initialize debug mode
+        initDebugMode();
     }
 
     document.addEventListener('DOMContentLoaded', initializeApp);

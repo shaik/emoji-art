@@ -28,53 +28,56 @@
                     </div>
 
                     <div class="upload-controls">
-                        <div class="grid-size-controls">
-                            <label for="gridSize">Grid Width:</label>
-                            <select id="gridSize" name="gridSize">
-                                <option value="8">8 emojis</option>
-                                <option value="16">16 emojis</option>
-                                <option value="32">32 emojis</option>
-                                <option value="64" {% if default_width == 64 %}selected{% endif %}>64 emojis</option>
-                                <option value="100">100 emojis</option>
-                                <option value="120">120 emojis</option>
-                            </select>
-                        </div>
-                    </div>
+                        <div id="errorMessage" class="error-message"></div>
 
-                    <div id="errorMessage" class="error-message"></div>
-
-                    <div class="preview-section">
-                        <div class="image-preview-container">
-                            <div id="imagePreview" class="image-preview"></div>
-                            <div id="selectionOverlay" class="selection-overlay" style="display: none;">
-                                <div class="selection-box">
-                                    <div class="resize-handle top-left"></div>
-                                    <div class="resize-handle top-right"></div>
-                                    <div class="resize-handle bottom-left"></div>
-                                    <div class="resize-handle bottom-right"></div>
+                        <div class="preview-section">
+                            <div class="image-preview-container">
+                                <div id="imagePreview" class="image-preview"></div>
+                                <div id="selectionOverlay" class="selection-overlay" style="display: none;">
+                                    <div class="selection-box">
+                                        <div class="resize-handle top-left"></div>
+                                        <div class="resize-handle top-right"></div>
+                                        <div class="resize-handle bottom-left"></div>
+                                        <div class="resize-handle bottom-right"></div>
+                                    </div>
                                 </div>
                             </div>
+                            <canvas id="previewCanvas" class="preview-canvas" style="display: none;"></canvas>
                         </div>
-                        <canvas id="previewCanvas" class="preview-canvas" style="display: none;"></canvas>
                     </div>
                 </form>
             </section>
 
             <section class="emoji-art-section">
                 <h2>Emoji Art</h2>
-                <div class="download-controls">
-                    <button id="downloadBtn" class="download-btn" disabled>
-                        Download Emoji Art
-                        <select id="downloadFormat" class="download-format">
-                            <option value="text">Text</option>
-                            <option value="png">PNG</option>
-                            <option value="jpeg">JPEG</option>
+                <div class="control-panel">
+                    <div class="grid-controls">
+                        <label for="gridSize" class="control-label">Grid Width:</label>
+                        <select id="gridSize" name="gridSize" class="control-select">
+                            <option value="8">8 emojis</option>
+                            <option value="16">16 emojis</option>
+                            <option value="32">32 emojis</option>
+                            <option value="64" {% if default_width == 64 %}selected{% endif %}>64 emojis</option>
+                            <option value="100">100 emojis</option>
+                            <option value="120">120 emojis</option>
                         </select>
-                    </button>
-                    <div id="downloadSpinner" class="download-spinner" style="display: none;">
-                        Generating PNG...
+                    </div>
+                    
+                    <div class="download-controls">
+                        <button id="downloadBtn" class="download-btn" disabled>
+                            Download Emoji Art
+                            <select id="downloadFormat" class="download-format">
+                                <option value="text">Text</option>
+                                <option value="png">PNG</option>
+                                <option value="jpeg">JPEG</option>
+                            </select>
+                        </button>
+                        <div id="downloadSpinner" class="download-spinner" style="display: none;">
+                            Generating PNG...
+                        </div>
                     </div>
                 </div>
+
                 <div class="font-size-controls">
                     <button id="decreaseFontSize" class="font-size-btn" title="Decrease font size">
                         <span>-</span>

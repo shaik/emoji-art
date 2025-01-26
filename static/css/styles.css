@@ -465,12 +465,15 @@ select {
     border-radius: var(--border-radius);
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
     overflow-x: auto;
+    overflow-y: auto;
+    max-height: 80vh;
 }
 
 .emoji-art-wrapper {
     display: flex;
     justify-content: center;
-    width: 100%;
+    min-width: min-content;
+    padding: 1rem;
 }
 
 .emoji-art {
@@ -479,13 +482,11 @@ select {
     text-align: center;
     line-height: 1;
     margin: 0;
-    padding: 1rem;
     letter-spacing: 0;
     background: white;
     border-radius: var(--border-radius);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    display: inline-grid;
-    gap: 0;
+    display: inline-block;
 }
 
 .emoji-art span {
@@ -527,6 +528,10 @@ select {
 
 /* Handle extra wide grids */
 @media (max-width: 768px) {
+    .emoji-art-container {
+        padding: 0.5rem;
+    }
+    
     .emoji-art[data-grid-width="100"],
     .emoji-art[data-grid-width="120"] {
         font-size: calc(6px + 0.1vw);

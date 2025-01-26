@@ -539,14 +539,20 @@ async function downloadEmojiArt() {
     debugLog(`[INFO] User selected "Download as ${format}" option`);
 
     try {
-        if (format === 'text') {
-            downloadAsText();
-        } else if (format === 'png') {
-            await downloadAsPng();
+        switch (format) {
+            case 'text':
+                downloadAsText();
+                break;
+            case 'png':
+            case 'jpeg':
+                await downloadAsImage(format);
+                break;
+            default:
+                throw new Error(`Unsupported format: ${format}`);
         }
     } catch (error) {
-        showError('Failed to generate download');
-        debugLog('[ERROR] Download generation failed:', error);
+        showError(`Failed to generate ${format.toUpperCase()} download`);
+        debugLog(`[ERROR] ${format.toUpperCase()} generation failed:`, error);
     }
 }
 
@@ -564,11 +570,12 @@ function downloadAsText() {
     debugLog('[INFO] Text file downloaded successfully');
 }
 
-async function downloadAsPng() {
+async function downloadAsImage(format) {
     downloadSpinner.style.display = 'block';
+    downloadSpinner.textContent = `Generating ${format.toUpperCase()}...`;
     
     try {
-        // Create canvas for PNG generation
+        // Create canvas for image generation
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         
@@ -577,7 +584,7 @@ async function downloadAsPng() {
         const width = currentEmojiGrid.data[0].length * cellSize;
         const height = currentEmojiGrid.data.length * cellSize;
         
-        debugLog(`[DEBUG] PNG dimensions: ${width}x${height} pixels`);
+        debugLog(`[DEBUG] ${format.toUpperCase()} dimensions: ${width}x${height} pixels`);
         
         // Set canvas size
         canvas.width = width;
@@ -602,22 +609,30 @@ async function downloadAsPng() {
             }
         }
         
-        // Convert to PNG and download
-        const dataUrl = canvas.toDataURL('image/png');
+        // Convert to image format and download
+        const mimeType = `image/${format}`;
+        const quality = format === 'jpeg' ? 0.8 : undefined; // JPEG quality setting
+        const dataUrl = canvas.toDataURL(mimeType, quality);
+        
+        if (format === 'jpeg') {
+            debugLog(`[DEBUG] JPEG quality setting: ${quality}`);
+        }
+        
         const a = document.createElement('a');
         a.href = dataUrl;
-        a.download = 'emoji_art.png';
+        a.download = `emoji_art.${format}`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         
-        debugLog('[INFO] PNG generated and downloaded successfully');
+        debugLog(`[INFO] ${format.toUpperCase()} generated and downloaded successfully`);
     } catch (error) {
-        showError('Failed to generate PNG');
-        debugLog('[ERROR] PNG generation failed:', error);
+        showError(`Failed to generate ${format.toUpperCase()}`);
+        debugLog(`[ERROR] ${format.toUpperCase()} generation failed:`, error);
         throw error;
     } finally {
         downloadSpinner.style.display = 'none';
+        downloadSpinner.textContent = 'Generating...';
     }
 }
 

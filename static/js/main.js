@@ -43,6 +43,7 @@ const selectionOverlay = document.getElementById('selectionOverlay');
 const emojiArtOutput = document.getElementById('emojiArtOutput');
 const downloadBtn = document.getElementById('downloadBtn');
 const downloadFormat = document.getElementById('downloadFormat');
+const downloadSpinner = document.getElementById('downloadSpinner');
 
 // State
 let currentGridSize = parseInt(gridSizeSelect?.value || '32');
@@ -527,36 +528,96 @@ function updateEmojiArtFontSize() {
 }
 
 // Download functions
-function downloadEmojiArt() {
-    try {
-        if (!currentEmojiGrid || !currentEmojiGrid.data) {
-            showError('No emoji art to download. Please generate emoji art first.');
-            return;
-        }
+async function downloadEmojiArt() {
+    if (!currentEmojiGrid || !currentEmojiGrid.data || currentEmojiGrid.data.length === 0) {
+        showError('No emoji art available to download');
+        debugLog('[ERROR] No emoji art available to generate download');
+        return;
+    }
 
-        debugLog('Starting emoji art download');
+    const format = downloadFormat.value;
+    debugLog(`[INFO] User selected "Download as ${format}" option`);
+
+    try {
+        if (format === 'text') {
+            downloadAsText();
+        } else if (format === 'png') {
+            await downloadAsPng();
+        }
+    } catch (error) {
+        showError('Failed to generate download');
+        debugLog('[ERROR] Download generation failed:', error);
+    }
+}
+
+function downloadAsText() {
+    const output = currentEmojiGrid.data.map(row => row.join('')).join('\n');
+    const blob = new Blob([output], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'emoji_art.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    debugLog('[INFO] Text file downloaded successfully');
+}
+
+async function downloadAsPng() {
+    downloadSpinner.style.display = 'block';
+    
+    try {
+        // Create canvas for PNG generation
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
         
-        // Get the emoji art content
-        const content = currentEmojiGrid.data.map(row => row.join('')).join('\n');
+        // Calculate dimensions
+        const cellSize = 32; // Base size for each emoji
+        const width = currentEmojiGrid.data[0].length * cellSize;
+        const height = currentEmojiGrid.data.length * cellSize;
         
-        // Create blob and download link
-        const blob = new Blob([content], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
+        debugLog(`[DEBUG] PNG dimensions: ${width}x${height} pixels`);
+        
+        // Set canvas size
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Set background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+        
+        // Set font for emojis
+        ctx.font = `${cellSize}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Draw emojis
+        for (let y = 0; y < currentEmojiGrid.data.length; y++) {
+            for (let x = 0; x < currentEmojiGrid.data[y].length; x++) {
+                const emoji = currentEmojiGrid.data[y][x];
+                const xPos = (x + 0.5) * cellSize;
+                const yPos = (y + 0.5) * cellSize;
+                ctx.fillText(emoji, xPos, yPos);
+            }
+        }
+        
+        // Convert to PNG and download
+        const dataUrl = canvas.toDataURL('image/png');
         const a = document.createElement('a');
-        a.href = url;
-        a.download = 'emoji_art.txt';
-        
-        // Trigger download
+        a.href = dataUrl;
+        a.download = 'emoji_art.png';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        URL.revokeObjectURL(url);
         
-        debugLog(`Generated text file with ${currentEmojiGrid.data.length} rows and ${currentEmojiGrid.data[0].length} columns`);
-        console.log('[INFO] Text file downloaded: emoji_art.txt');
+        debugLog('[INFO] PNG generated and downloaded successfully');
     } catch (error) {
-        console.error('[ERROR] Failed to download emoji art:', error);
-        showError('Failed to download emoji art. Please try again.');
+        showError('Failed to generate PNG');
+        debugLog('[ERROR] PNG generation failed:', error);
+        throw error;
+    } finally {
+        downloadSpinner.style.display = 'none';
     }
 }
 

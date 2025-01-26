@@ -389,8 +389,10 @@ select {
 
 /* Download Controls */
 .download-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     margin-bottom: 1rem;
-    text-align: center;
 }
 
 .download-btn {
@@ -430,6 +432,24 @@ select {
 .download-format:focus {
     outline: none;
     border-color: #4CAF50;
+}
+
+.download-spinner {
+    color: #666;
+    font-size: 0.9rem;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+#pngCanvas {
+    position: absolute;
+    left: -9999px;
+    visibility: hidden;
 }
 
 /* Emoji Art Section */

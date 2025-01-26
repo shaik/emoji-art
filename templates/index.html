@@ -32,8 +32,8 @@
                             <select id="gridSize" name="gridSize">
                                 <option value="8">8 emojis</option>
                                 <option value="16">16 emojis</option>
-                                <option value="32" selected>32 emojis</option>
-                                <option value="64">64 emojis</option>
+                                <option value="32">32 emojis</option>
+                                <option value="64" {% if default_width == 64 %}selected{% endif %}>64 emojis</option>
                                 <option value="100">100 emojis</option>
                                 <option value="120">120 emojis</option>
                             </select>

@@ -65,7 +65,7 @@ def create_app():
         build_info = BuildManager.get_build_info()
         app.logger.info('Homepage accessed')
         app.logger.info(f'Build info: {build_info}')
-        return render_template('index.html', build_info=build_info)
+        return render_template('index.html', build_info=build_info, default_width=Config.DEFAULT_WIDTH)
 
     @app.route('/upload', methods=['POST'])
     def upload_file():

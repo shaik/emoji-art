@@ -1,16 +1,19 @@
 {
-    "build_number": 21,
-    "last_updated": "2025-01-26T23:05:35+02:00",
-    "version": "1.3.0",
+    "build_number": 27,
+    "last_updated": "2025-01-27T23:02:10+02:00",
+    "version": "1.4.0",
     "features": {
         "text_download": true,
-        "png_download": true,
-        "jpeg_download": true,
-        "large_grid_support": true
+        "image_download": true,
+        "font_size_control": true,
+        "grid_size_control": true,
+        "jpeg_preview": true
     },
     "changes": [
-        "Added JPEG download functionality",
-        "Fixed scrolling for large grids",
-        "Improved download UI feedback"
+        "Transitioned to JPEG-only rendering",
+        "Removed text-based view and zoom controls",
+        "Fixed image upload and processing",
+        "Improved preview container centering",
+        "Enhanced canvas performance"
     ]
 }

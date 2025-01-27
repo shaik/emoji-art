@@ -19,7 +19,7 @@
             <section class="upload-section">
                 <h2>Upload Your Image</h2>
                 <form id="uploadForm" enctype="multipart/form-data">
-                    <div class="drag-drop-area" id="dragDropArea">
+                    <div class="drag-drop-area" id="dragDropArea" ondragleave="handleDragLeave(event)">
                         <input type="file" id="fileInput" class="file-input" accept="image/*">
                         <div class="drag-drop-text">
                             <span>Drag and drop your image here</span>
@@ -28,8 +28,6 @@
                     </div>
 
                     <div class="upload-controls">
-                        <div id="errorMessage" class="error-message"></div>
-
                         <div class="preview-section">
                             <div class="image-preview-container">
                                 <div id="imagePreview" class="image-preview"></div>
@@ -78,18 +76,9 @@
                     </div>
                 </div>
 
-                <div class="font-size-controls">
-                    <button id="decreaseFontSize" class="font-size-btn" title="Decrease font size">
-                        <span>-</span>
-                    </button>
-                    <div id="fontSizeDisplay" class="font-size-display">100%</div>
-                    <button id="increaseFontSize" class="font-size-btn" title="Increase font size">
-                        <span>+</span>
-                    </button>
-                </div>
                 <div class="emoji-art-container">
                     <div class="emoji-art-wrapper">
-                        <pre id="emojiArtOutput" class="emoji-art"></pre>
+                        <div id="emojiArtOutput" class="emoji-art-hidden"></div>
                     </div>
                 </div>
             </section>

@@ -490,44 +490,78 @@ async function downloadEmojiArt() {
     debugLog(`[INFO] User selected "Download as ${format}" option`);
 
     try {
+        downloadSpinner.style.display = 'block';
+        downloadBtn.disabled = true;
+
         switch (format) {
+            case 'text':
+                await downloadAsText();
+                break;
+            case 'png':
+                await downloadAsImage('png');
+                break;
             case 'jpeg':
-                await downloadAsImage(format);
+                await downloadAsImage('jpeg');
                 break;
             default:
                 throw new Error(`Unsupported format: ${format}`);
         }
+        
+        debugLog(`[INFO] ${format.toUpperCase()} download completed successfully`);
     } catch (error) {
         debugLog(`[ERROR] ${format.toUpperCase()} generation failed:`, error);
+    } finally {
+        downloadSpinner.style.display = 'none';
+        downloadBtn.disabled = false;
+    }
+}
+
+async function downloadAsText() {
+    try {
+        // Convert emoji grid to text
+        let textContent = '';
+        for (let row of currentEmojiGrid.data) {
+            textContent += row.join('') + '\n';
+        }
+
+        // Create blob and download
+        const blob = new Blob([textContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'emoji-art.txt';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        debugLog('[INFO] Text download completed successfully');
+    } catch (error) {
+        debugLog('[ERROR] Text generation failed:', error);
+        throw error;
     }
 }
 
 async function downloadAsImage(format) {
-    downloadSpinner.style.display = 'block';
-    downloadSpinner.textContent = `Generating ${format.toUpperCase()}...`;
-    
     try {
         // Create canvas for image generation
         const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         
-        // Calculate dimensions
-        const cellSize = 32; // Base size for each emoji
-        const width = currentEmojiGrid.data[0].length * cellSize;
-        const height = currentEmojiGrid.data.length * cellSize;
+        // Calculate cell size based on grid width
+        const baseSize = 32; // Base size for each emoji
+        const cellWidth = baseSize;
         
-        debugLog(`[DEBUG] ${format.toUpperCase()} dimensions: ${width}x${height} pixels`);
-        
-        // Set canvas size
-        canvas.width = width;
-        canvas.height = height;
+        // Set canvas dimensions
+        canvas.width = cellWidth * currentEmojiGrid.data[0].length;
+        canvas.height = cellWidth * currentEmojiGrid.data.length;
         
         // Set background
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, width, height);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         // Set font for emojis
-        ctx.font = `${cellSize}px Arial`;
+        ctx.font = `${cellWidth}px "Segoe UI Emoji", "Apple Color Emoji", Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
@@ -535,39 +569,32 @@ async function downloadAsImage(format) {
         for (let y = 0; y < currentEmojiGrid.data.length; y++) {
             for (let x = 0; x < currentEmojiGrid.data[y].length; x++) {
                 const emoji = currentEmojiGrid.data[y][x];
-                const xPos = (x + 0.5) * cellSize;
-                const yPos = (y + 0.5) * cellSize;
+                const xPos = (x + 0.5) * cellWidth;
+                const yPos = (y + 0.5) * cellWidth;
                 ctx.fillText(emoji, xPos, yPos);
             }
         }
         
         // Convert to image format and download
         const mimeType = `image/${format}`;
-        const quality = format === 'jpeg' ? 0.8 : undefined; // JPEG quality setting
+        const quality = format === 'jpeg' ? 0.9 : undefined;
         const dataUrl = canvas.toDataURL(mimeType, quality);
         
-        if (format === 'jpeg') {
-            debugLog(`[DEBUG] JPEG quality setting: ${quality}`);
-        }
+        const link = document.createElement('a');
+        link.download = `emoji-art.${format}`;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         
-        const a = document.createElement('a');
-        a.href = dataUrl;
-        a.download = `emoji_art.${format}`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        
-        debugLog(`[INFO] ${format.toUpperCase()} generated and downloaded successfully`);
+        debugLog(`[INFO] ${format.toUpperCase()} download completed successfully`);
     } catch (error) {
         debugLog(`[ERROR] ${format.toUpperCase()} generation failed:`, error);
         throw error;
-    } finally {
-        downloadSpinner.style.display = 'none';
-        downloadSpinner.textContent = 'Generating...';
     }
 }
 
-async function renderEmojiPreview() {
+function renderEmojiPreview() {
     if (!currentEmojiGrid || !currentEmojiGrid.data || currentEmojiGrid.data.length === 0) return;
 
     const emojiArt = document.getElementById('emojiArtOutput');

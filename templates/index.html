@@ -61,18 +61,16 @@
                         </select>
                     </div>
                     
-                    <div class="download-controls">
-                        <button id="downloadBtn" class="download-btn" disabled>
-                            Download Emoji Art
-                            <select id="downloadFormat" class="download-format">
-                                <option value="text">Text</option>
-                                <option value="png">PNG</option>
-                                <option value="jpeg">JPEG</option>
-                            </select>
+                    <div class="download-section">
+                        <select id="downloadFormat" class="select">
+                            <option value="text">Download as Text</option>
+                            <option value="png">Download as PNG</option>
+                            <option value="jpeg">Download as JPEG</option>
+                        </select>
+                        <button id="downloadBtn" class="button" disabled>
+                            <span>Download</span>
+                            <div id="downloadSpinner" class="spinner" style="display: none;"></div>
                         </button>
-                        <div id="downloadSpinner" class="download-spinner" style="display: none;">
-                            Generating PNG...
-                        </div>
                     </div>
                 </div>
 

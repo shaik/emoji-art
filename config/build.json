@@ -14,5 +14,34 @@
         "Fixed image generation for all formats",
         "Enhanced canvas performance",
         "Improved error handling"
-    ]
+    ],
+    "version": "1.0.0",
+    "name": "emoji-art",
+    "description": "Web application that creates art using emojis as pixels",
+    "scripts": {
+        "generate-emoji-data": "cd emojiDB && python generate_emoji_data.py",
+        "build": "npm run generate-emoji-data"
+    },
+    "dependencies": {
+        "python": "^3.8.0",
+        "pillow": "^10.0.0",
+        "numpy": "^1.24.0"
+    },
+    "emojiData": {
+        "source": "emoji-test.txt",
+        "output": "emoji_data.csv",
+        "totalEmojis": 3780,
+        "uniqueColors": 1038,
+        "colorCalculation": {
+          "method": "weightedMedian",
+          "centerRadius": 0.7,
+          "alphaThreshold": 0.2
+        }
+    },
+    "config": {
+        "imageProcessing": {
+          "maxSize": 2048,
+          "quality": 0.8
+        }
+    }
 }

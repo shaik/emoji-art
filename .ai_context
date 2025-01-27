@@ -10,7 +10,7 @@ DEVELOPMENT_STATUS=Active
 VERSION=13
 
 [CORE_PURPOSE]
-Web application that transforms uploaded images into emoji art by analyzing color patterns and mapping them to closest matching emojis. Uses grid-based approach for pixelation and emoji mapping. Supports multiple download formats including text, PNG, and JPEG.
+A web application that creates art using emojis as pixels. The app processes images and replaces regions with emojis that best match the color of that region.
 
 [ARCHITECTURE]
 BACKEND:
@@ -29,19 +29,32 @@ FRONTEND:
 - Multi-format download support
 
 [KEY_COMPONENTS]
-1. app.py:
+1. Emoji Database:
+   - Located in `/emojiDB/`
+   - Uses Unicode emoji test file (`emoji-test.txt`) as source
+   - Generates `emoji_data.csv` with unique-colored emojis
+   - Color calculation focuses on central area of emojis using weighted median
+   - Filters out duplicate colors, keeping only first emoji for each unique color
+   - Currently uses 1,038 emojis with distinct colors
+
+2. Web Interface:
+   - Frontend in `/static/`
+   - Uses JavaScript for image processing
+   - Converts uploaded images into emoji art
+
+3. app.py:
    - Main Flask application
    - Image processing logic
    - Route handlers
    - External connections enabled
 
-2. utils/csv_parser.py:
+4. utils/csv_parser.py:
    - Emoji data parsing
    - Row validation
    - Non-ASCII character support
    - Error handling
 
-3. static/js/main.js:
+5. static/js/main.js:
    - File handling
    - Grid rendering
    - Color averaging
@@ -50,7 +63,7 @@ FRONTEND:
    - Canvas-based image generation
    - Multi-format download handling
 
-4. static/css/styles.css:
+6. static/css/styles.css:
    - Modern pastel theme
    - Responsive design
    - Grid-based layouts
@@ -146,23 +159,33 @@ BUILDPACKS:
 - heroku-community/apt
 
 [RECENT_CHANGES]
-1. Added JPEG download functionality with 0.8 quality setting
-2. Added PNG download with transparency support
-3. Fixed scrolling issues for large grid sizes
-4. Improved download code organization
-5. Added format-specific error handling and logging
-6. Updated container styles for better responsiveness
-7. Added loading indicators for image generation
+1. Improved emoji color calculation:
+  - Uses weighted median color instead of mean
+  - Focuses on central area of emoji (70% radius)
+  - Considers alpha channel for better color representation
+  - Filters out duplicate colors
+2. Reduced emoji set from 3,780 to 1,038 unique colors
+3. Added validation for generated emoji data
+4. Added JPEG download functionality with 0.8 quality setting
+5. Added PNG download with transparency support
+6. Fixed scrolling issues for large grid sizes
+7. Improved download code organization
+8. Added format-specific error handling and logging
+9. Updated container styles for better responsiveness
+10. Added loading indicators for image generation
 
 [KNOWN_ISSUES]
 None currently reported
 
 [NEXT_STEPS]
-1. Consider adding more download formats (SVG, PDF)
-2. Implement quality settings adjustment for JPEG
-3. Add image format comparison tool
-4. Optimize canvas rendering for very large grids
-5. Add download progress indicators for large files
+1. Integrate new emoji color data with frontend
+2. Optimize image processing algorithm
+3. Add more customization options for users
+4. Consider adding more download formats (SVG, PDF)
+5. Implement quality settings adjustment for JPEG
+6. Add image format comparison tool
+7. Optimize canvas rendering for very large grids
+8. Add download progress indicators for large files
 
 [TESTING_STRATEGY]
 1. Unit tests for CSV parser
@@ -201,5 +224,20 @@ BUILD: Check footer info
 4. Social sharing features
 5. Server-side caching
 6. Progressive web app conversion
+
+[FILE_STRUCTURE]
+```
+/
+├── emojiDB/
+│   ├── generate_emoji_data.py  # Emoji processing script
+│   ├── emoji-test.txt         # Unicode emoji data
+│   └── emoji_data.csv         # Generated emoji color data
+├── static/
+│   ├── js/
+│   │   └── main.js           # Frontend logic
+│   └── data/                 # Static data files
+└── config/
+    └── build.json           # Build configuration
+```
 
 [END_CONTEXT]

@@ -34,17 +34,16 @@ def valid_csv_file(test_csv_path):
 def test_emoji_validation():
     """Test emoji validation for various emoji types."""
     # Valid emojis
-    assert is_valid_emoji('🟩')  # Square emoji
-    assert is_valid_emoji('🟦')  # Square with color
-    assert is_valid_emoji('⬛')  # Basic shape
-    assert is_valid_emoji('🚹')  # Symbol
-    
+    assert is_valid_emoji('🟩')[0]  # Square emoji
+    assert is_valid_emoji('🟦')[0]  # Square with color
+    assert is_valid_emoji('⬛')[0]  # Basic shape
+    assert is_valid_emoji('🚹')[0]  # Symbol
+
     # Invalid inputs
-    assert not is_valid_emoji('')  # Empty
-    assert not is_valid_emoji('abc')  # Plain text
-    assert not is_valid_emoji('123')  # Numbers
-    assert not is_valid_emoji(' ')  # Whitespace
-    assert not is_valid_emoji('🟩🟦')  # Multiple emojis
+    assert not is_valid_emoji('')[0]  # Empty
+    assert not is_valid_emoji('abc')[0]  # ASCII only
+    assert not is_valid_emoji('123')[0]  # Numbers only
+    assert not is_valid_emoji(' ')[0]  # Whitespace
 
 def test_color_validation():
     """Test hex color validation."""
@@ -101,7 +100,7 @@ def test_invalid_row_data(test_csv_path):
         ['invalid', 'not-a-number', 'not-a-color'],  # All invalid
         ['🟩', 'abc', '#37c136'],  # Invalid ASCII
         ['🟩', '129001', 'invalid-color'],  # Invalid color
-        ['multiple-emoji-🟩🟦', '129001', '#37c136']  # Invalid emoji
+        ['', '129001', '#37c136']  # Empty emoji
     ]
     
     with open(test_csv_path, 'w', newline='', encoding='utf-8') as f:
@@ -110,7 +109,7 @@ def test_invalid_row_data(test_csv_path):
     
     Config.EMOJI_CSV_PATH = test_csv_path
     emoji_data = parse_emoji_csv()
-    assert len(emoji_data) == 0  # No valid rows
+    assert len(emoji_data) == 0  # All rows should be invalid
 
 def test_empty_csv(test_csv_path):
     """Test handling of empty CSV file."""

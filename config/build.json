@@ -1,7 +1,7 @@
 {
-    "build_number": 29,
-    "last_updated": "2025-01-27T23:15:44+02:00",
-    "version": "1.4.0",
+    "build_number": 37,
+    "last_updated": "2025-01-29T23:43:24.445111",
+    "version": "1.0.0",
     "features": {
         "text_download": true,
         "image_download": true,
@@ -15,7 +15,6 @@
         "Enhanced canvas performance",
         "Improved error handling"
     ],
-    "version": "1.0.0",
     "name": "emoji-art",
     "description": "Web application that creates art using emojis as pixels",
     "scripts": {
@@ -33,15 +32,15 @@
         "totalEmojis": 3780,
         "uniqueColors": 1038,
         "colorCalculation": {
-          "method": "weightedMedian",
-          "centerRadius": 0.7,
-          "alphaThreshold": 0.2
+            "method": "weightedMedian",
+            "centerRadius": 0.7,
+            "alphaThreshold": 0.2
         }
     },
     "config": {
         "imageProcessing": {
-          "maxSize": 2048,
-          "quality": 0.8
+            "maxSize": 2048,
+            "quality": 0.8
         }
     }
 }

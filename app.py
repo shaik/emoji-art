@@ -10,6 +10,7 @@ from utils.build_manager import BuildManager
 from utils.color_utils import color_distance
 from PIL import Image
 from typing import List, Dict
+import re
 
 def create_app():
     """Application factory function."""
@@ -109,174 +110,175 @@ def create_app():
 
     @app.route('/get-emojis')
     def get_emojis_filtered():
-        """
-        Get emojis with optional filtering by name and color.
-        Query parameters:
-        - name: Filter emojis by name (case-insensitive substring match)
-        - color: Filter emojis by closest color match (hex format: #RRGGBB)
-        """
-        name_filter = request.args.get('name', '').lower()
-        color_filter = request.args.get('color', '')
-        
-        app.logger.info(f'/get-emojis accessed with parameters: name={name_filter}, color={color_filter}')
-        
+        """Get emojis based on name and color filters."""
+        name = request.args.get('name', '')
+        color = request.args.get('color', '')
+
         try:
-            # Start with all emojis
             filtered_emojis = app.emoji_db
-            
-            # Apply name filter if provided
-            if name_filter:
-                filtered_emojis = [
-                    emoji for emoji in filtered_emojis
-                    if name_filter in emoji['name'].lower()
-                ]
-            
-            # Apply color filter if provided
-            if color_filter:
-                # Validate color format
-                if not color_filter.startswith('#') or len(color_filter) != 7:
-                    app.logger.error(f"Invalid color format: {color_filter}")
+            if name:
+                filtered_emojis = [e for e in filtered_emojis if name.lower() in e['Emoji'].lower()]
+            if color:
+                if not re.match(r'^#[0-9A-Fa-f]{6}$', color):
                     return jsonify({
                         'status': 'error',
                         'message': 'Invalid color format. Use #RRGGBB format.'
                     }), 400
-                
-                # Calculate color distances and sort by closest match
-                try:
-                    emoji_distances = [
-                        (emoji, color_distance(color_filter, emoji['color']))
-                        for emoji in filtered_emojis
-                    ]
-                    # Filter out None distances (invalid colors) and sort by distance
-                    valid_distances = [
-                        (emoji, dist) for emoji, dist in emoji_distances
-                        if dist is not None
-                    ]
-                    if valid_distances:
-                        filtered_emojis = [
-                            emoji for emoji, _ in sorted(valid_distances, key=lambda x: x[1])
-                        ]
-                    else:
-                        app.logger.error("No valid color matches found")
-                        filtered_emojis = []
-                except Exception as e:
-                    app.logger.error(f"Error calculating color distances: {e}")
-                    return jsonify({
-                        'status': 'error',
-                        'message': 'Error processing color filter'
-                    }), 400
-            
-            # Log results
-            result_count = len(filtered_emojis)
-            if result_count == 0:
-                app.logger.warning(
-                    f"No matching emojis found for filters: name={name_filter}, color={color_filter}"
-                )
-            else:
-                app.logger.info(f"Found {result_count} matching emojis")
-                
-            if app.debug:
-                app.logger.debug(f"Filtered emojis: {filtered_emojis}")
-            
+                filtered_emojis = [e for e in filtered_emojis if color_distance(e['Hex Color'], color) < 100]
+
             return jsonify({
                 'status': 'success',
                 'data': filtered_emojis
             })
-            
         except Exception as e:
-            app.logger.error(f"Error processing request: {e}")
+            app.logger.error(f'Error processing request: {str(e)}')
             return jsonify({
                 'status': 'error',
                 'message': 'Internal server error'
             }), 500
 
-    def process_image(image_path: str, grid_size: int = 32) -> List[List[Dict[str, str]]]:
+    def parse_aspect_ratio(ratio_str):
+        """Parse aspect ratio string in format 'width:height' to float."""
+        try:
+            if ':' in ratio_str:
+                width, height = map(float, ratio_str.split(':'))
+                return width / height
+            return float(ratio_str)
+        except (ValueError, ZeroDivisionError):
+            raise ValueError('Invalid aspect ratio format. Use width:height (e.g., 16:9) or decimal (e.g., 1.78)')
+
+    def process_image_to_grid(image, grid_size, aspect_ratio_str):
         """Process the image and return a grid of emoji data."""
         try:
-            # Open and process image
-            with Image.open(image_path) as img:
-                # Resize image to grid size while maintaining aspect ratio
-                img.thumbnail((grid_size, grid_size))
-                width, height = img.size
-                
-                # Convert to RGB if necessary
-                if img.mode != 'RGB':
-                    img = img.convert('RGB')
-                
-                # Create grid
-                grid = []
-                for y in range(height):
-                    row = []
-                    for x in range(width):
-                        # Get pixel color
-                        r, g, b = img.getpixel((x, y))
-                        pixel_color = f"#{r:02x}{g:02x}{b:02x}"
-                        
-                        # Find closest emoji
-                        closest_emoji = None
-                        min_distance = float('inf')
-                        
-                        for emoji_data in app.emoji_db:
-                            emoji_color = emoji_data['Hex Color']
-                            distance = color_distance(pixel_color, emoji_color)
-                            
-                            if distance < min_distance:
-                                min_distance = distance
-                                closest_emoji = emoji_data
-                        
-                        if closest_emoji:
-                            row.append({
-                                'emoji': closest_emoji['Emoji'],
-                                'color': closest_emoji['Hex Color']
-                            })
-                        else:
-                            # Fallback emoji if no match found
-                            row.append({
-                                'emoji': '⬜',
-                                'color': '#FFFFFF'
-                            })
+            # Parse aspect ratio
+            try:
+                aspect_ratio = parse_aspect_ratio(aspect_ratio_str)
+            except ValueError:
+                app.logger.warning(f'Invalid aspect ratio {aspect_ratio_str}, using 1:1')
+                aspect_ratio = 1.0
+
+            # Resize image to grid size while maintaining aspect ratio
+            width, height = image.size
+            if width / height > aspect_ratio:
+                new_width = int(height * aspect_ratio)
+                new_height = height
+            else:
+                new_width = width
+                new_height = int(width / aspect_ratio)
+            
+            image = image.resize((grid_size, int(grid_size / aspect_ratio)))
+            
+            # Convert to RGB if necessary
+            if image.mode != 'RGB':
+                image = image.convert('RGB')
+            
+            # Create grid
+            grid = []
+            for y in range(image.height):
+                row = []
+                for x in range(image.width):
+                    # Get pixel color
+                    r, g, b = image.getpixel((x, y))
+                    pixel_color = f"#{r:02x}{g:02x}{b:02x}"
                     
-                    grid.append(row)
+                    # Find closest emoji
+                    closest_emoji = None
+                    min_distance = float('inf')
+                    
+                    for emoji_data in app.emoji_db:
+                        emoji_color = emoji_data['Hex Color']
+                        distance = color_distance(pixel_color, emoji_color)
+                        
+                        if distance < min_distance:
+                            min_distance = distance
+                            closest_emoji = emoji_data
+                    
+                    if closest_emoji:
+                        row.append({
+                            'emoji': closest_emoji['Emoji'],
+                            'color': closest_emoji['Hex Color']
+                        })
+                    else:
+                        # Fallback emoji if no match found
+                        row.append({
+                            'emoji': '⬜',
+                            'color': '#FFFFFF'
+                        })
                 
-                return grid
-                
+                grid.append(row)
+            
+            return grid
+            
         except Exception as e:
             app.logger.error(f"Error processing image: {str(e)}")
             raise
 
     @app.route('/process-image', methods=['POST'])
-    def process_image_endpoint():
-        """Process uploaded image and return grid data."""
+    def process_image():
+        """Process uploaded image and convert to emoji art."""
         if 'image' not in request.files:
-            return jsonify({'error': 'No image provided'}), 400
-        
-        image = request.files['image']
-        if not image.filename:
-            return jsonify({'error': 'No image selected'}), 400
-        
-        # Validate grid size
+            return jsonify({
+                'status': 'error',
+                'message': 'No image file provided'
+            }), 400
+
+        file = request.files['image']
+        if file.filename == '':
+            return jsonify({
+                'status': 'error',
+                'message': 'No selected file'
+            }), 400
+
+        # Validate required parameters
         grid_size = request.form.get('gridSize')
-        if not grid_size or not grid_size.isdigit() or int(grid_size) <= 0:
-            return jsonify({'error': 'Invalid grid size'}), 400
+        aspect_ratio = request.form.get('aspectRatio')
         
+        if not grid_size:
+            return jsonify({
+                'status': 'error',
+                'message': 'gridSize parameter is required'
+            }), 400
+        
+        if not aspect_ratio:
+            return jsonify({
+                'status': 'error',
+                'message': 'aspectRatio parameter is required'
+            }), 400
+
         try:
-            # Save image to file
-            filename = secure_filename(image.filename)
-            timestamp = str(int(time.time()))
-            filename = f"{timestamp}_{filename}"
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            image.save(file_path)
-            
-            # Process image
-            grid = process_image(file_path, int(grid_size))
+            grid_size = int(grid_size)
+            if grid_size <= 0:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Grid size must be positive'
+                }), 400
+        except ValueError:
+            return jsonify({
+                'status': 'error',
+                'message': 'Invalid grid size format'
+            }), 400
+
+        try:
+            # Process the image
+            image = Image.open(file)
+            processed_grid = process_image_to_grid(image, grid_size, aspect_ratio)
             
             return jsonify({
-                'grid': grid
+                'status': 'success',
+                'grid': processed_grid
             })
-        
+        except ValueError as e:
+            app.logger.error(f'Error processing image: {str(e)}')
+            return jsonify({
+                'status': 'error',
+                'message': str(e)
+            }), 400
         except Exception as e:
             app.logger.error(f'Error processing image: {str(e)}')
-            return jsonify({'error': 'Error processing image'}), 500
+            return jsonify({
+                'status': 'error',
+                'message': 'Error processing image'
+            }), 500
 
     @app.route('/data/emoji_data.csv')
     def serve_emoji_data():

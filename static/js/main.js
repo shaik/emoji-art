@@ -612,7 +612,7 @@ function renderEmojiPreview() {
     canvas.height = cellWidth * currentEmojiGrid.data.length;
     
     // Set background
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = '#CCCCCC';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     // Set font for emojis

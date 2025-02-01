@@ -52,12 +52,12 @@
                     <div class="grid-controls">
                         <label for="gridSize" class="control-label">Grid Width:</label>
                         <select id="gridSize" name="gridSize" class="control-select">
-                            <option value="8">8 emojis</option>
-                            <option value="16">16 emojis</option>
-                            <option value="32">32 emojis</option>
+                            <option value="8" {% if default_width == 8 %}selected{% endif %}>8 emojis</option>
+                            <option value="16" {% if default_width == 16 %}selected{% endif %}>16 emojis</option>
+                            <option value="32" {% if default_width == 32 %}selected{% endif %}>32 emojis</option>
                             <option value="64" {% if default_width == 64 %}selected{% endif %}>64 emojis</option>
-                            <option value="100">100 emojis</option>
-                            <option value="120">120 emojis</option>
+                            <option value="100" {% if default_width == 100 %}selected{% endif %}>100 emojis</option>
+                            <option value="120" {% if default_width == 120 %}selected{% endif %}>120 emojis</option>
                         </select>
                     </div>
                     

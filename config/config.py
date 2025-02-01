@@ -11,7 +11,7 @@ class Config:
     EMOJI_CSV_HEADERS = ['Emoji', 'ASCII Code', 'Hex Color']
     
     # Default dimensions
-    DEFAULT_WIDTH = 64
+    DEFAULT_WIDTH = 100
     
     # Color validation
     HEX_COLOR_PATTERN = r'^#[0-9A-Fa-f]{6}$'

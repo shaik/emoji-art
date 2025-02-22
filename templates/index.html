@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Emoji Art Creator</title>
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ request.script_root }}/static/favicon.ico">
+    <link rel="stylesheet" href="{{ request.script_root }}/static/css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -100,7 +100,7 @@
         </footer>
     </div>
 
-    <script src="{{ url_for('static', filename='js/kdtree.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ request.script_root }}/static/js/kdtree.js"></script>
+    <script src="{{ request.script_root }}/static/js/main.js"></script>
 </body>
 </html>
